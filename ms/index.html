@@ -199,6 +199,10 @@
 						d3.selectAll('.tick text').attr('dy', '0')
 													.attr('transform', 'translate(0, 10)');
 						d3.selectAll('path.line').attr('stroke-miterlimit', '1');
+						d3.selectAll('.tick text').attr('-moz-user-select', '-moz-none')
+											.attr('-khtml-user-select', 'none')
+											.attr('-webkit-user-select', 'none')
+											.attr('unselectable', 'on');
 					}
 					
 					this.plotLine = function(start, stop) {
