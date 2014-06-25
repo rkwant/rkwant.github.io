@@ -100,7 +100,7 @@
 				function listfiles() {
 					var innertxt = '<ul id="filelisting">';
 					filenames.forEach(function(d,i) {
-						innertxt += '<li id="file'+i+'" class="fileitem">'+d+' <a>delete</a></li>';
+						innertxt += '<li id="file'+i+'" class="fileitem">'+d+' <a href="#" id="delete'+i+'" class="deletebutton">delete</a></li>';
 					});
 					innertxt += '</ul>';
 					d3.select("#filelist").html(innertxt);
@@ -108,6 +108,18 @@
 					$('#filelisting').sortable({stop: function(event, ui) {
 						checkFileOrdering();
 					}});
+					
+					$('.deletebutton').click(function() {
+						removeElement(this);
+					});
+				}
+				
+				function removeElement(elementlink) {
+					fileIndex = parseInt(elementlink.id.slice(6));
+					filenames.splice(fileIndex, 1);
+					filedata.splice(fileIndex, 1);
+					listfiles();
+					checkFileOrdering();
 				}
 				
 				function checkFileOrdering() {
@@ -248,9 +260,17 @@
 					
 					//actually plot the data
 					this.plot = function() { 
-						//console.log(this.id);
 						this.chartContainer = svg.append('g').attr('class', 'filebox')
 												 .attr('transform', 'translate(0, '+(this.height+this.verticalPadding)*this.id+')');
+						
+						this.eventSplashZone = this.chartContainer.append('svg:rect')
+						   .attr("width", this.width)
+						   .attr("height", this.height)
+						   .attr('fill', 'none')
+						   .attr('pointer-events', 'all')
+						   .on("mousedown", pandown)
+						   .on("mouseup", panup);
+						
 						// create xAxis
 						this.xAxis = d3.svg.axis().scale(this.xScale).tickSubdivide(true);
 						
@@ -258,7 +278,8 @@
 						this.chartContainer.append("svg:g")
 							  .attr("class", "x axis")
 							  .attr("transform", "translate(0," + this.height + ")")
-							  .call(this.xAxis);
+							  .call(this.xAxis)
+							  ;
 						
 						this.plotLine(this.xmin, this.xmax);
 						this.applyCSS();
@@ -327,8 +348,8 @@
 					}
 				
 					this.panned = function(panstart, panstop) {
-						var xstart = this.xScale.invert(panstart);
-						var xstop = this.xScale.invert(panstop);
+						var xstart = panstart;
+						var xstop = panstop;
 						//console.log(xstart+' '+xstop);
 						
 						if (d3.select('#integrate').property('checked')) this.integrate(xstart, xstop);
@@ -479,19 +500,7 @@
 								.attr("width", w + m[1] + m[3])
 								.attr("height", h + m[0] + m[2])
 								.append("svg:g")
-								.attr("transform", "translate(" + m[3] + "," + m[0] + ")")								
-					
-					//add a rectangle to the canvas so that we can click on it
-					svg.append('svg:rect')
-					   .attr("width", w + m[1] + m[3])
-					   .attr("height", h + m[0] + m[2])
-					   .attr('fill', 'none')
-					   .attr('pointer-events', 'all')
-					   .on("mousedown", pandown)
-					   .on("mouseup", panup)
-					   
-					   
-					// add a clip path?
+								.attr("transform", "translate(" + m[3] + "," + m[0] + ")");
 				}
 				
 
@@ -508,50 +517,28 @@
 				}
 				// On click, update the x-axis.
 				function pandown() {
-					var location = d3.mouse(this);
 					panning = true;
-					panstart = location[0];
+					panstart = d3.mouse(this)[0];
 					//console.log(panstart);
 				}
 				
 				function panup() {
-					var location = d3.mouse(this);
-					console.log(location);
 					if (panning) {
-						panstop = location[0];
-						//console.log(panstop);
+						panstop = d3.mouse(this)[0];
+						console.log(panstart+' '+panstop);
 						
-						//if (panstart == panstop) return;
+						console.log(this);
+						for (var i = 0; i<filedata.length; i++) {
+							if (filedata[i].eventSplashZone[0][0] == this) {
+								panstart = filedata[i].xScale.invert(panstart);
+								panstop = filedata[i].xScale.invert(panstop);
+							}
+						}
 						
 						
 						filedata.forEach(function (d, i) {
 							d.panned(panstart, panstop);
 						});	
-						///xScale.domain([d3.min([panstart, panstop]), d3.max([panstart, panstop])]);
-						
-						/*
-						svg.select(".x.axis").call(xAxis);
-						svg.selectAll(".line").remove();
-						svg.selectAll(".label").remove();
-						peaks = peakdetect(dataset);
-						
-						svg.append("svg:path").attr("class", "line").attr("d", line(dataset));
-						svg.selectAll("text")
-						   .data(peaks, function(d) {return d;})
-						   .enter()
-						   .append("text")
-						   .text(function(d) {
-								return d[0];// + "," + d[1];
-						   })
-						   .attr("x", function(d) {
-								return xScale(d[0]);
-						   })
-						   .attr("y", function(d) {
-								return yScale(d[1]);
-						   })
-						   .attr("font-family", "sans-serif")
-						   .attr("font-size", "11px")
-						   .attr("class", "label");*/
 					}
 					panning = false;
 				}
