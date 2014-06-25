@@ -1,0 +1,50 @@
+/* tell the SVG path to be a thin blue line without any area fill */
+.Center-Container.is-Table { 
+	display: table; 
+	margin:auto;
+	height:100%;
+	
+}
+.is-Table .Table-Cell {
+  display: table-cell;
+  vertical-align: middle;
+}
+.is-Table .Center-Block {
+  width: 100%;
+  margin: 0 auto;
+}
+
+svg {
+	cursor: default;
+}
+
+
+
+body, html {
+	height:100%;
+	margin:0;
+}
+
+#leftbar {
+	height:100%;
+	width: 300px;
+	float:left;
+	overflow: hidden;
+	background: #999999;
+}
+
+
+
+.sliderbox {
+	margin: 10px 0px 5px 10px;
+	padding: 5px;
+	
+}
+
+.slidercontent {
+	/*display: none;(*/
+}
+
+.first {
+	display: block;
+}
