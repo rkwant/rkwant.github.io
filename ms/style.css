@@ -48,3 +48,7 @@ body, html {
 .first {
 	display: block;
 }
+
+a {
+	color:black;
+}
