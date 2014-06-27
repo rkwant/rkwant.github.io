@@ -201,7 +201,7 @@
 												.attr('fill', 'none');
 						d3.selectAll('.x.axis .minor').attr('stroke-opacity', '0.5');
 						d3.selectAll('.domain').attr('fill', 'none')
-											.attr('stroke-width', '0.5')
+											.attr('stroke-width', '1')
 											.attr('stroke', 'black')
 											.attr('display', 'display');
 						d3.selectAll('.tick text').attr('dy', '0')
@@ -281,7 +281,12 @@
 						   .on("mouseup", panup);
 						
 						// create xAxis
-						this.xAxis = d3.svg.axis().scale(this.xScale).tickSubdivide(true);
+						this.xAxis = d3.svg.axis()
+										.scale(this.xScale)
+										.orient("bottom")
+										.ticks(6);
+										
+						if (this.id < filedata.length - 1) this.xAxis.tickFormat(function(d) {return ""});
 						
 						// Add the x-axis.
 						this.chartContainer.append("svg:g")
