@@ -177,6 +177,9 @@
 					this.ymin = getmin(this.data, 1);
 					this.ymax = getmax(this.data, 1);
 					
+					this.viewmin = this.xmin;
+					this.viewmax = this.xmax;
+					
 					//set the axes scales
 					this.setScales = function(width, height, id) {
 						this.width = width;
@@ -184,7 +187,7 @@
 						this.id = id;
 						
 						this.xScale = d3.scale.linear()
-										 .domain([this.xmin, this.xmax])
+										 .domain([this.viewmin, this.viewmax])
 										 .range([0, this.width]);
 						
 
@@ -205,8 +208,16 @@
 											.attr('stroke', 'black')
 											.attr('display', 'display');
 						d3.selectAll('.tick text').attr('dy', '0')
-													.attr('transform', 'translate(0, 10)');
-						d3.selectAll('path.line').attr('stroke-miterlimit', '1');
+													.attr('transform', 'translate(0, 10)')
+													.attr("font-size", "12px")
+													.attr("font-family", "sans-serif");
+						d3.selectAll('path.line').attr('stroke-miterlimit', '1')
+												
+						d3.selectAll('path.dataline').attr("stroke-width", "1")
+												.attr("fill", "none")
+												.attr("stroke", "#1B52BF");
+										   
+						if (/(^#[0-9A-F]{6}$)|(^#[0-9A-F]{3}$)/i.test(getv("#linecolor"))) d3.selectAll("path.dataline").attr("stroke", getv("#linecolor"));
 
 					}
 					
@@ -249,11 +260,10 @@
 						//console.log(dataResampled.length);
 						
 						this.chartContainer.append("path")
-										   .attr("class", "line")
-										   .attr("d", this.line(dataResampled))
-										   .attr("stroke-width", "1")
-										   .attr("fill", "none")
-										   .attr("stroke", "#1B52BF");
+										   .attr("class", "line dataline")
+										   .attr("d", this.line(dataResampled));
+										   
+										   
 					}
 					this.addTitle = function() {
 					//create the line element
@@ -284,9 +294,10 @@
 						this.xAxis = d3.svg.axis()
 										.scale(this.xScale)
 										.orient("bottom")
-										.ticks(6);
+										.ticks(getv("#nticks"));
 										
 						if (this.id < filedata.length - 1) this.xAxis.tickFormat(function(d) {return ""});
+						else this.xAxis.tickFormat(function(d) {return d})
 						
 						// Add the x-axis.
 						this.chartContainer.append("svg:g")
@@ -295,7 +306,7 @@
 							  .call(this.xAxis)
 							  ;
 						
-						this.plotLine(this.xmin, this.xmax);
+						this.plotLine(this.viewmin, this.viewmax);
 						this.applyCSS();
 						this.findAndDisplayPeaks();
 						this.addTitle();
@@ -417,7 +428,7 @@
 												.attr("class", "integrationlabel")
 												.attr("x", this.xScale((start+stop)/2.0))
 												.attr("y", this.yScale(this.ymax+(this.ymax-this.ymin)*0.12))
-												.text(intvalue.toFixed(parseInt(getv('#insf'))))
+												.text(intvalue.toFixed(parseInt(getv('#intsf'))))
 												.attr("font-family", "sans-serif")
 												.attr("font-size", "13px")
 												.attr("text-align", "center").attr("text-anchor", "middle");
@@ -430,9 +441,14 @@
 						//console.log('zooming');
 						if (start==stop) {
 							//console.log('they were equal');
-							this.xScale.domain([this.xmin, this.xmax]);
+							this.viewmin = this.xmin;
+							this.viewmax = this.xmax;
 						}
-						else this.xScale.domain([start, stop]);
+						else {
+							this.viewmin = start;
+							this.viewmax = stop;
+						}
+						this.xScale.domain([this.viewmin, this.viewmax]);
 						this.chartContainer.select("g.x.axis").call(this.xAxis);
 						this.chartContainer.selectAll("path.line").remove();
 						this.chartContainer.selectAll("text.label").remove();
@@ -517,7 +533,12 @@
 								.attr("transform", "translate(" + m[3] + "," + m[0] + ")");
 				}
 				
-
+				function applyCSS() {
+					fileordering.forEach(function (dnum, i) {
+						d = filedata[dnum];
+						d.applyCSS();
+					});		
+				}
 				
 				function plotdata() {
 					//define the width, height, and margins
@@ -594,6 +615,9 @@
 					redraw();
 				});
 				
+				$("#linecolor").on('keyup change', function() {
+					applyCSS();
+				});
 				
 				$("#xmin").on('keyup change', function() {
 					adjustXlim();
@@ -617,6 +641,10 @@
 				
 				$("#peaksf").on("change mousemove", function () {
 					updatePeaks();
+				});
+				
+				$("#nticks").on("change", function () {
+					redraw();
 				});
 				
 				$('#clear').click(function () {
@@ -705,7 +733,18 @@
 					<label for="integrate">Select Integrations:</label>
 					<input type="checkbox" id="integrate"></input>
 					<label for="intsf">Sig Figs:</label>
-					<input type="range" id="insf" min='0' max='5' value='0'></input>
+					<input type="range" id="intsf" min='0' max='5' value='0'></input>
+					
+				</div>
+			</div>
+			<div id="styling" class="sliderbox">
+				<p>Styling</p>
+				<div class="slidercontent">
+					<label for="nticks">Tick Number:</label>
+					<input type="range" id="nticks" min='0' max='15' value='6'></input>
+					<br>
+					<label for="linecolor">Line Color:</label>
+					<input type="text" id="linecolor" value='#1B52BF'></input>
 					
 				</div>
 			</div>
