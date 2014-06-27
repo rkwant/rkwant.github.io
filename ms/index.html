@@ -606,11 +606,11 @@
 				var expiry = new Date(today.getTime() + 30 * 24 * 3600 * 1000); // plus 30 days
 				
 				function setCookies() {
-					console.log("I got called");
+					#console.log("I got called");
 					for (var i = 0; i<formIDs.length; i++) {
 						var cookietext = formIDs[i] + "=" + escape(getv('#'+formIDs[i])) + "; expires=" + expiry.toGMTString();
 						document.cookie=cookietext;
-						console.log(cookietext);
+						#console.log(cookietext);
 					}
 				}
 				
@@ -622,9 +622,9 @@
 				}
 				
 				function loadCookies() {
-					console.log('loading cookies');
+					#console.log('loading cookies');
 					for (var i = 0; i<formIDs.length; i++) {
-						console.log(getCookie(formIDs[i]));
+						#console.log(getCookie(formIDs[i]));
 						if (thevalue = getCookie(formIDs[i])) $('#'+formIDs[i]).val(getCookie(formIDs[i]));
 					}
 				}
