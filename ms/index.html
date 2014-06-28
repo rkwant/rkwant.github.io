@@ -107,7 +107,7 @@
 				function listfiles() {
 					var innertxt = '<ul id="filelisting">';
 					filenames.forEach(function(d,i) {
-						innertxt += '<li id="file'+i+'" class="fileitem">'+d+' <a href="#" id="delete'+i+'" class="deletebutton">delete</a></li>';
+						innertxt += '<li id="file'+i+'" class="fileitem" contenteditable="true">'+d+' <a href="#" id="delete'+i+'" class="deletebutton">delete</a></li>';
 					});
 					innertxt += '</ul>';
 					d3.select("#filelist").html(innertxt);
@@ -116,8 +116,17 @@
 						checkFileOrdering();
 					}});
 					
+					$('#filelisting').bind('contextmenu', function(e){
+						return false;
+					}); 
+					
 					$('.deletebutton').click(function() {
 						removeElement(this);
+					});
+					
+					$(".fileitem").on('keyup change', function() {
+						var fnumber = this.id.slice(4);
+						$('#title'+fnumber).html(this.innerHTML);
 					});
 				}
 				
@@ -273,7 +282,8 @@
 												.text(this.fname)
 												.attr("font-family", "sans-serif")
 												.attr("font-size", "14px")
-												.attr("text-align", "center").attr("text-anchor", "middle");
+												.attr("text-align", "center").attr("text-anchor", "middle")
+												.attr("id", "title"+this.id);
 					}
 					
 					//actually plot the data
