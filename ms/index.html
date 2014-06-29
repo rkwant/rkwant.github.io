@@ -107,7 +107,7 @@
 				function listfiles() {
 					var innertxt = '<ul id="filelisting">';
 					filenames.forEach(function(d,i) {
-						innertxt += '<li id="file'+i+'" class="fileitem" contenteditable="true">'+d+' <a href="#" id="delete'+i+'" class="deletebutton">delete</a></li>';
+						innertxt += '<li id="file'+i+'" class="fileitem"><span contenteditable="true" class="filespan" id="fspa'+i+'">'+d+'</span> <a href="#" id="delete'+i+'" class="deletebutton">delete</a></li>';
 					});
 					innertxt += '</ul>';
 					d3.select("#filelist").html(innertxt);
@@ -124,7 +124,11 @@
 						removeElement(this);
 					});
 					
-					$(".fileitem").on('keyup change', function() {
+					$(".filespan").on('click mousedown', function(e) {
+						e.stopPropagation();
+					});
+					
+					$(".filespan").on('keyup change', function() {
 						var fnumber = this.id.slice(4);
 						$('#title'+fnumber).html(this.innerHTML);
 					});
@@ -273,13 +277,14 @@
 										   
 										   
 					}
+					
 					this.addTitle = function() {
 					//create the line element
 							this.chartContainer.append("text")
 												.attr("class", "plottitle")
 												.attr("x", this.width/2)
 												.attr("y", 0)
-												.text(this.fname)
+												.text($('#fspa'+this.id).html())
 												.attr("font-family", "sans-serif")
 												.attr("font-size", "14px")
 												.attr("text-align", "center").attr("text-anchor", "middle")
