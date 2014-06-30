@@ -321,10 +321,9 @@
 							  ;
 						
 						this.plotLine(this.viewmin, this.viewmax);
-						this.applyCSS();
-						this.findAndDisplayPeaks();
+						this.findAndDisplayPeaks(this.viewmin, this.viewmax);
 						this.addTitle();
-						
+						this.applyCSS();
 					}
 					
 					this.checkPeakMatch = function() {
@@ -511,6 +510,9 @@
 						if (x > mx + lookahead) {
 							if (my/maxy > cutoff && getmax(d.slice(d3.max([0, mi-(i-mi)]), d3.min([d.length, mi])), 1) < my && mx > start && mx<stop)
 							{
+								console.log(mx);
+								console.log(start);
+								console.log(stop);
 								candidates.push([mx, my]);
 							}
 							mx = x;
