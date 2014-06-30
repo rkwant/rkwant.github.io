@@ -349,12 +349,12 @@
 						}
 					}
 					
-					this.findAndDisplayPeaks = function() {
+					this.findAndDisplayPeaks = function(start, stop) {
 						if (!d3.select('#showpeaks').property('checked')) return;
 						
 						if (this.setPeakParams()) {
 							//console.log('detecting peaks');
-							this.peaks = peakdetect(this.data, 50);
+							this.peaks = peakdetect(this.data, 50, start, stop);
 						}
 						
 						//console.log('plotting peaks');
@@ -467,7 +467,7 @@
 						this.chartContainer.selectAll("path.line").remove();
 						this.chartContainer.selectAll("text.label").remove();
 						this.plotLine(start, stop);
-						this.findAndDisplayPeaks();
+						this.findAndDisplayPeaks(start, stop);
 						this.displayIntegration();
 						this.applyCSS();
 					}
@@ -485,7 +485,7 @@
 					return d3.max(arr, function (k) {return k[pos]; });
 				}
 				
-				function peakdetect(d, maxpeaks) {
+				function peakdetect(d, maxpeaks, start, stop) {
 					lookahead = parseFloat(d3.select('#lookahead').property('value'));
 					lookahead = lookahead * 100.0/1000.0;
 					lookahead = 1.0 + (lookahead*lookahead);
@@ -509,7 +509,7 @@
 						
 						//we've made it lookahead away without erasing a match
 						if (x > mx + lookahead) {
-							if (my/maxy > cutoff && getmax(d.slice(d3.max([0, mi-(i-mi)]), d3.min([d.length, mi])), 1) < my)
+							if (my/maxy > cutoff && getmax(d.slice(d3.max([0, mi-(i-mi)]), d3.min([d.length, mi])), 1) < my && mx > start && mx<stop)
 							{
 								candidates.push([mx, my]);
 							}
