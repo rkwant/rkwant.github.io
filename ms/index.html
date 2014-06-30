@@ -348,12 +348,12 @@
 						}
 					}
 					
-					this.findAndDisplayPeaks = function(start, stop) {
+					this.findAndDisplayPeaks = function() {
 						if (!d3.select('#showpeaks').property('checked')) return;
 						
 						if (this.setPeakParams()) {
 							//console.log('detecting peaks');
-							this.peaks = peakdetect(this.data, 50, start, stop);
+							this.peaks = peakdetect(this.data, 50);
 						}
 						
 						//console.log('plotting peaks');
@@ -466,7 +466,7 @@
 						this.chartContainer.selectAll("path.line").remove();
 						this.chartContainer.selectAll("text.label").remove();
 						this.plotLine(start, stop);
-						this.findAndDisplayPeaks(start, stop);
+						this.findAndDisplayPeaks();
 						this.displayIntegration();
 						this.applyCSS();
 					}
@@ -484,7 +484,7 @@
 					return d3.max(arr, function (k) {return k[pos]; });
 				}
 				
-				function peakdetect(d, maxpeaks, start, stop) {
+				function peakdetect(d, maxpeaks) {
 					lookahead = parseFloat(d3.select('#lookahead').property('value'));
 					lookahead = lookahead * 100.0/1000.0;
 					lookahead = 1.0 + (lookahead*lookahead);
