@@ -38,8 +38,8 @@ body, html {
 .sliderbox {
 	margin: 20px 10px 5px 10px;
 	padding: 5px;
-	/*border: 1px solid #1B52BF;
-	border-radius:5px;*/
+	/*border: 1px solid #1B52BF;*/
+	border-radius:5px;
 	box-shadow: 1px 1px 10px #999;
 }
 
