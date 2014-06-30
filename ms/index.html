@@ -508,11 +508,8 @@
 						
 						//we've made it lookahead away without erasing a match
 						if (x > mx + lookahead) {
-							if (my/maxy > cutoff && getmax(d.slice(d3.max([0, mi-(i-mi)]), d3.min([d.length, mi])), 1) < my && mx > start && mx<stop)
+							if (my/maxy > cutoff && getmax(d.slice(d3.max([0, mi-(i-mi)]), d3.min([d.length, mi])), 1) < my)
 							{
-								console.log(mx);
-								console.log(start);
-								console.log(stop);
 								candidates.push([mx, my]);
 							}
 							mx = x;
