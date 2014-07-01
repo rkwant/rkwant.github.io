@@ -1,4 +1,4 @@
-<!DOCTYPE HTML>
+﻿<!DOCTYPE HTML>
 <html>
 	<head>
 		
@@ -321,7 +321,7 @@
 							  ;
 						
 						this.plotLine(this.viewmin, this.viewmax);
-						this.findAndDisplayPeaks(this.viewmin, this.viewmax);
+						this.findAndDisplayPeaks();
 						this.addTitle();
 						this.applyCSS();
 					}
@@ -361,8 +361,19 @@
 						this.showpeaks = d3.select('#showpeaks').property('checked');
 						xS1 = this.xScale;
 						yS1 = this.yScale;
+						
+						var stari = this.viewmin;
+						var stpi = this.viewmax;
+						var peaksLimited = this.peaks.filter(
+							function(d, i, q) { 
+								if (d[0] > stari && d[0] < stpi) return true;
+								else return false;
+							}
+						);
+						
+						
 						this.chartContainer.selectAll("text")
-							   .data(this.peaks, function(d) {return d;})
+							   .data(peaksLimited, function(d) {return d;})
 							   .enter()
 							   .append("text")
 							   .text(function(d) {
