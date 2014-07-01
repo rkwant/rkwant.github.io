@@ -223,7 +223,9 @@
 													.attr('transform', 'translate(0, 10)')
 													.attr("font-size", "12px")
 													.attr("font-family", "sans-serif");
+						
 						d3.selectAll('path.line').attr('stroke-miterlimit', '1')
+												.attr('stroke-linejoin', 'bevel');
 												
 						d3.selectAll('path.dataline').attr("stroke-width", "1")
 												.attr("fill", "none")
@@ -723,6 +725,9 @@
 					// The result will be an attachment file to download.
 					var form = document.getElementById("svgform");
 					form['output_format'].value = output_format;
+					form['xdim'].value = d3.select('#graphcanvas').attr('width');
+					form['ydim'].value = d3.select('#graphcanvas').attr('height');
+					
 					form['data'].value = svg_xml;
 					form.submit();
 				});
@@ -765,6 +770,10 @@
 					<input type="text" id="xmin" value='0'  size='4'></input>
 					to
 					<input type="text" id="xmax" value='0'  size='4'></input>
+					<br>
+					<label for="autoscale" >Auto y scale:</label>
+					<input type="checkbox" id="autoscale" checked="checked"></input>
+					
 				</div>
 			</div>
 			
@@ -827,6 +836,8 @@
 		<form id="svgform" method="post" action="http://mbfgrp.cchem.berkeley.edu/plotting/splash.php">
 		<input type="hidden" id="output_format" name="output_format" value="">
 		<input type="hidden" id="data" name="data" value="">
+		<input type="hidden" id="xdim" name="xdim" value="">
+		<input type="hidden" id="ydim" name="ydim" value="">
 		</form>
 	</body>
 
