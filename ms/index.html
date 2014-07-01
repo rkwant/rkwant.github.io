@@ -13,7 +13,7 @@
 		  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
 
 		  ga('create', 'UA-52357311-1', 'auto');
-		  ga('send', 'pageview');
+		  ga('send', 'pageview'); 
 		</script>
 		<script>
 			// Check for the various File API support.
@@ -67,7 +67,7 @@
 						reader.onload = (function(theFile) {
 								return function(e) {
 									thedata = readCSVStr(e.target.result);
-									//console.log(filenames.indexOf(theFile.name));
+									////console.log(filenames.indexOf(theFile.name));
 									filedata[filenames.indexOf(theFile.name)] = new dataFile({data: thedata,fname: theFile.name});
 									checkDone();
 								};
@@ -155,9 +155,9 @@
 				}
 				
 				function checkDone() {
-					//console.log('Checking done');
-					//console.log(filedata);
-					//console.log(filenames);
+					////console.log('Checking done');
+					////console.log(filedata);
+					////console.log(filenames);
 					
 					var anynulls = false;
 					for (var i = 0; i<filedata.length; i++) {
@@ -255,7 +255,7 @@
 						datastart = start;
 						datastop = stop;
 						
-						//console.log(this.data.length);
+						////console.log(this.data.length);
 						var dataResampled = this.data.filter(
 							function(d, i, q) { 
 								var toremove = i % Math.ceil(dataPerPixel) == 0;
@@ -269,7 +269,7 @@
 								return true;
 							}
 						);
-						//console.log(dataResampled.length);
+						////console.log(dataResampled.length);
 						
 						this.chartContainer.append("path")
 										   .attr("class", "line dataline")
@@ -352,11 +352,11 @@
 						if (!d3.select('#showpeaks').property('checked')) return;
 						
 						if (this.setPeakParams()) {
-							//console.log('detecting peaks');
+							////console.log('detecting peaks');
 							this.peaks = peakdetect(this.data, 50);
 						}
 						
-						//console.log('plotting peaks');
+						////console.log('plotting peaks');
 						
 						this.showpeaks = d3.select('#showpeaks').property('checked');
 						xS1 = this.xScale;
@@ -399,7 +399,7 @@
 					this.panned = function(panstart, panstop) {
 						var xstart = panstart;
 						var xstop = panstop;
-						//console.log(xstart+' '+xstop);
+						////console.log(xstart+' '+xstop);
 						
 						if (d3.select('#integrate').property('checked')) this.integrate(xstart, xstop);
 						else if (xstop > xstart) this.zoom(xstart, xstop);
@@ -422,7 +422,7 @@
 						}
 						this.integrations.push([start, stop, sum]);
 						this.displayIntegration();
-						//console.log(this.integrations);
+						////console.log(this.integrations);
 
 					}
 					
@@ -462,9 +462,9 @@
 					this.zoom = function(start, stop) {
 						//this.xScale.domain([d3.min([start, stop]), d3.max([start, stop])]);	
 						//svg.select(".x.axis").call(this.xAxis);
-						//console.log('zooming');
+						////console.log('zooming');
 						if (start==stop) {
-							//console.log('they were equal');
+							////console.log('they were equal');
 							this.viewmin = this.xmin;
 							this.viewmax = this.xmax;
 						}
@@ -499,13 +499,13 @@
 					lookahead = parseFloat(d3.select('#lookahead').property('value'));
 					lookahead = lookahead * 100.0/1000.0;
 					lookahead = 1.0 + (lookahead*lookahead);
-					//console.log(lookahead);
+					////console.log(lookahead);
 					
 					
 					cutoff = parseFloat(d3.select('#cutoff').property('value'));
 					cutoff = cutoff * 6.9 / 1000.0;
 					cutoff = 0.001*Math.pow(2.718,cutoff);
-					//console.log(cutoff);
+					////console.log(cutoff);
 					
 					var candidates = new Array();
 					var mx = d[0][0]; var my = d[0][1];
@@ -536,7 +536,7 @@
 						
 						
 					}
-					//console.log(candidates);
+					////console.log(candidates);
 					return candidates;
 				}
 				
@@ -567,7 +567,7 @@
 				function plotdata() {
 					//define the width, height, and margins
 					setup_canvas();
-					//console.log(filedata);
+					////console.log(filedata);
 					fileordering.forEach(function (dnum, i) {
 						d = filedata[dnum];
 						d.setScales(w, h/filedata.length, i);
@@ -579,15 +579,15 @@
 				function pandown() {
 					panning = true;
 					panstart = d3.mouse(this)[0];
-					//console.log(panstart);
+					////console.log(panstart);
 				}
 				
 				function panup() {
 					if (panning) {
 						panstop = d3.mouse(this)[0];
-						console.log(panstart+' '+panstop);
+						//console.log(panstart+' '+panstop);
 						
-						console.log(this);
+						//console.log(this);
 						for (var i = 0; i<filedata.length; i++) {
 							if (filedata[i].eventSplashZone[0][0] == this) {
 								panstart = filedata[i].xScale.invert(panstart);
@@ -631,11 +631,11 @@
 				var expiry = new Date(today.getTime() + 30 * 24 * 3600 * 1000); // plus 30 days
 				
 				function setCookies() {
-					//console.log("I got called");
+					////console.log("I got called");
 					for (var i = 0; i<formIDs.length; i++) {
 						var cookietext = formIDs[i] + "=" + escape(getv('#'+formIDs[i])) + "; expires=" + expiry.toGMTString();
 						document.cookie=cookietext;
-						//console.log(cookietext);
+						////console.log(cookietext);
 					}
 				}
 				
@@ -647,9 +647,9 @@
 				}
 				
 				function loadCookies() {
-					//console.log('loading cookies');
+					////console.log('loading cookies');
 					for (var i = 0; i<formIDs.length; i++) {
-						//console.log(getCookie(formIDs[i]));
+						////console.log(getCookie(formIDs[i]));
 						if (thevalue = getCookie(formIDs[i])) $('#'+formIDs[i]).val(getCookie(formIDs[i]));
 					}
 				}
