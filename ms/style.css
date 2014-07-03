@@ -68,3 +68,12 @@ label {
 a {
 	color:black;
 }
+
+.Table-Cell .tooltip {
+		position: fixed; /** depends on how it handles the e.pageX and e.pageY **/
+        width: 80px;
+        height: 30px;
+        /*background: #06F;*/
+        z-index: 10;
+        display: none; /**let the tooltip be not visable, when startup **/
+}

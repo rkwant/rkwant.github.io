@@ -1,7 +1,7 @@
 ﻿<!DOCTYPE HTML>
 <html>
 	<head>
-		
+		<title>Chartograph MS</title>
 		<link rel="stylesheet" type="text/css" href="style.css">
 		<script src="d3.min.js"></script>
 		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
@@ -324,8 +324,21 @@
 						
 						this.plotLine(this.viewmin, this.viewmax);
 						this.findAndDisplayPeaks();
+						this.displayIntegration();
 						this.addTitle();
 						this.applyCSS();
+						
+						xS1 = this.xScale;
+						yS1 = this.yScale;
+						this.eventSplashZone.on('mousemove', function() {
+							var e = d3.event
+							
+							$('.tooltip').html(xS1.invert(d3.mouse(this)[0]).toFixed(parseInt(getv('#peaksf'))));
+							$('.tooltip').css('left', e.pageX + 10).css('top', e.pageY + 10).css('display', 'block');
+						});
+						this.eventSplashZone.on('mouseout', function() {
+							$('.tooltip').css('display', 'none');
+						});
 					}
 					
 					this.checkPeakMatch = function() {
@@ -397,6 +410,12 @@
 						this.chartContainer.selectAll('.label').remove();
 						this.findAndDisplayPeaks();
 					}
+					
+					this.reint = function() {
+						this.chartContainer.selectAll('.integrationlabel').remove();
+						this.chartContainer.selectAll('.integrationline').remove();
+						this.displayIntegration();
+					}
 				
 					this.panned = function(panstart, panstop) {
 						var xstart = panstart;
@@ -467,8 +486,13 @@
 						////console.log('zooming');
 						if (start==stop) {
 							////console.log('they were equal');
-							this.viewmin = this.xmin;
-							this.viewmax = this.xmax;
+							this.viewmin = getv('#xmin');
+							this.viewmax = getv('#xmax');
+							
+							if (this.viewmin == this.viewmax) {
+								this.viewmin = this.xmin;
+								this.viewmax = this.xmax;
+							}
 						}
 						else {
 							this.viewmin = start;
@@ -478,7 +502,7 @@
 						this.chartContainer.select("g.x.axis").call(this.xAxis);
 						this.chartContainer.selectAll("path.line").remove();
 						this.chartContainer.selectAll("text.label").remove();
-						this.plotLine(start, stop);
+						this.plotLine(this.viewmin, this.viewmax);
 						this.findAndDisplayPeaks();
 						this.displayIntegration();
 						this.applyCSS();
@@ -611,6 +635,12 @@
 					});
 				}
 				
+				function updateInts() {
+					filedata.forEach(function (d, i) {
+						d.reint();
+					});
+				}
+				
 				function redraw() {
 					clearsvg();
 					plotdata();
@@ -703,6 +733,10 @@
 				
 				$("#peaksf").on("change mousemove", function () {
 					updatePeaks();
+				});
+				
+				$("#intsf").on("change mousemove", function () {
+					updateInts();
 				});
 				
 				$("#nticks").on("change", function () {
@@ -816,9 +850,9 @@
 					
 				</div>
 			</div>
-			<input type="button" id="download" value="Download PDF (exp.)"></input>
-			<input type="button" id="svgdownload" value="Save SVG"></input>
-			<input type="button" id="clear" value="clear"></input>
+			<input type="button" id="download" value="PDF"></input>
+			<input type="button" id="svgdownload" value="SVG"></input>
+			<input type="button" id="Clear Graph" value="clear"></input>
 			<br>
 			<a target="_blank" href="https://docs.google.com/forms/d/1F2txuHR11TZrUm9LmUvtCplzn_kmpVkZ_vSqu1VeyAw/viewform?usp=send_form">Comment/request feature</a>
 		</div>
@@ -829,6 +863,7 @@
 			<div class="Center-Block">
 				<svg id='graphcanvas'></svg>
 			</div>
+			<div class="tooltip">Tooltip</div>
 		  </div>
 		</div>
 
