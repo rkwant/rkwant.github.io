@@ -327,6 +327,18 @@
 						this.displayIntegration();
 						this.addTitle();
 						this.applyCSS();
+						
+						xS1 = this.xScale;
+						yS1 = this.yScale;
+						this.eventSplashZone.on('mousemove', function() {
+							var e = d3.event
+							
+							$('.tooltip').html(xS1.invert(d3.mouse(this)[0]).toFixed(parseInt(getv('#peaksf'))));
+							$('.tooltip').css('left', e.pageX + 10).css('top', e.pageY + 10).css('display', 'block');
+						});
+						this.eventSplashZone.on('mouseout', function() {
+							$('.tooltip').css('display', 'none');
+						});
 					}
 					
 					this.checkPeakMatch = function() {
@@ -851,6 +863,7 @@
 			<div class="Center-Block">
 				<svg id='graphcanvas'></svg>
 			</div>
+			<div class="tooltip">Tooltip</div>
 		  </div>
 		</div>
 
