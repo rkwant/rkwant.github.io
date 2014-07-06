@@ -3,6 +3,7 @@
 	<head>
 		<title>Chartograph MS</title>
 		<link rel="stylesheet" type="text/css" href="style.css">
+		<link href='http://fonts.googleapis.com/css?family=Rokkitt' rel='stylesheet' type='text/css'>
 		<script src="d3.min.js"></script>
 		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
 		<script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
@@ -236,6 +237,8 @@
 					}
 					
 					this.plotLine = function(start, stop) {
+						this.chartContainer.selectAll("path.line").remove();
+						
 						//create the line element
 						xS1 = this.xScale;
 						yS1 = this.yScale;
@@ -282,6 +285,8 @@
 					
 					this.addTitle = function() {
 					//create the line element
+							this.chartContainer.selectAll("text.plottitle").remove();
+							if (d3.select('#showtitles').property('checked')) 
 							this.chartContainer.append("text")
 												.attr("class", "plottitle")
 												.attr("x", this.width/2)
@@ -500,7 +505,7 @@
 						}
 						this.xScale.domain([this.viewmin, this.viewmax]);
 						this.chartContainer.select("g.x.axis").call(this.xAxis);
-						this.chartContainer.selectAll("path.line").remove();
+						
 						this.chartContainer.selectAll("text.label").remove();
 						this.plotLine(this.viewmin, this.viewmax);
 						this.findAndDisplayPeaks();
@@ -635,6 +640,12 @@
 					});
 				}
 				
+				function updateTitles() {
+					filedata.forEach(function (d, i) {
+						d.addTitle();
+					});
+				}
+				
 				function updateInts() {
 					filedata.forEach(function (d, i) {
 						d.reint();
@@ -671,8 +682,7 @@
 					}
 				}
 				
-				function getCookie(name)
-				{
+				function getCookie(name) {
 					var re = new RegExp(name + "=([^;]+)");
 					var value = re.exec(document.cookie);
 					return (value != null) ? unescape(value[1]) : null;
@@ -721,6 +731,10 @@
 				
 				$("#showpeaks").change(function () {
 					updatePeaks();
+				});
+				
+				$("#showtitles").change(function () {
+					updateTitles();
 				});
 				
 				$("#lookahead").on("change mousemove", function () {
@@ -783,12 +797,15 @@
 
 	<body>
 		<div id="leftbar">
-			<div id="files" class="sliderbox">
+			<div id="filesdiv" class="sliderbox">
 				<p>Files</p>
 				<div class="slidercontent first">
 					<input type="file" id="files" name="files[]" multiple >
 					<div id="filelist">
 					</div>
+					<br>
+					<label for="showtitles" >Show titles:</label>
+					<input type="checkbox" id="showtitles" checked="checked"></input>
 				</div>
 			</div>
 			
@@ -850,11 +867,29 @@
 					
 				</div>
 			</div>
-			<input type="button" id="download" value="PDF"></input>
-			<input type="button" id="svgdownload" value="SVG"></input>
-			<input type="button" id="Clear Graph" value="clear"></input>
-			<br>
-			<a target="_blank" href="https://docs.google.com/forms/d/1F2txuHR11TZrUm9LmUvtCplzn_kmpVkZ_vSqu1VeyAw/viewform?usp=send_form">Comment/request feature</a>
+			<div class="sliderbox">
+				<input type="button" id="download" value="PDF"></input>
+				<input type="button" id="svgdownload" value="SVG"></input>
+				<input type="button" id="Clear Graph" value="clear"></input>
+				<br>
+				<a target="_blank" href="https://docs.google.com/forms/d/1F2txuHR11TZrUm9LmUvtCplzn_kmpVkZ_vSqu1VeyAw/viewform?usp=send_form">Feedback</a>
+				|
+				 <a href = "javascript:void(0)" onclick = "document.getElementById('light').style.display='block';document.getElementById('fade').style.display='block'">Shortcuts and directions</a>
+					<div id="light" class="white_content">
+						To change plot titles, click on the title in the files box and type in a new name.
+						<br>
+						<br>
+						You can zoom by clicking and dragging on the graph canvas.  Zoom out by clicking on the graph without dragging.
+						<br>
+						<br>
+						Ticks are always shown at the ends of the axes.  If you see ticks without labels, try typing round numbers into the x limits boxes.
+						
+						
+						
+						<a href = "javascript:void(0)" onclick = "document.getElementById('light').style.display='none';document.getElementById('fade').style.display='none'">Close</a>
+					</div>
+					<div id="fade" class="black_overlay" onclick = "document.getElementById('light').style.display='none';document.getElementById('fade').style.display='none'"></div>
+			</div>
 		</div>
 		
 		
