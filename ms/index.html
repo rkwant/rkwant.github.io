@@ -432,6 +432,11 @@
 						else this.zoom(xstop,xstart);
 					}
 					
+					this.clearIntegration = function() {
+						this.integrations = [];
+						this.displayIntegration();
+					}
+					
 					this.integrate = function(start, stop) {
 						var sum = 0;
 						for (var i = 0; i < this.data.length-1; i++) {
@@ -646,6 +651,12 @@
 					});
 				}
 				
+				function clearIntegrals() {
+					filedata.forEach(function (d, i) {
+						d.clearIntegration();
+					});
+				}
+				
 				function updateInts() {
 					filedata.forEach(function (d, i) {
 						d.reint();
@@ -761,7 +772,9 @@
 					clearsvg();
 				});
 				
-				
+				$('#clearintegrals').click(function (e) {
+					clearIntegrals();
+				});
 				
 				$('#download').click(function (e) {
 					// Get the d3js SVG element
@@ -854,7 +867,7 @@
 					<label for="intsf">Sig Figs:</label>
 					<input type="range" id="intsf" min='0' max='5' value='0'></input>
 					<br>
-					<input type="button" id="clearints" value="Clear Integrals"></input>
+					<input type="button" id="clearintegrals" value="Clear Integrals"></input>
 				</div>
 			</div>
 			<div id="styling" class="sliderbox">
