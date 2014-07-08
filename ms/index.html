@@ -775,6 +775,7 @@
 					form['output_format'].value = output_format;
 					form['xdim'].value = d3.select('#graphcanvas').attr('width');
 					form['ydim'].value = d3.select('#graphcanvas').attr('height');
+					form['filename'].value = getv('#fname');
 					
 					form['data'].value = svg_xml;
 					form.submit();
@@ -867,6 +868,9 @@
 				</div>
 			</div>
 			<div class="sliderbox">
+				<label for="fname">File name:</label>
+				<input type="text" id="fname" value='mass_spectrum'  size='15'></input>
+				<br>
 				<input type="button" id="download" value="PDF"></input>
 				<input type="button" id="svgdownload" value="SVG"></input>
 				<input type="button" id="Clear Graph" value="clear"></input>
@@ -907,6 +911,7 @@
 		<input type="hidden" id="data" name="data" value="">
 		<input type="hidden" id="xdim" name="xdim" value="">
 		<input type="hidden" id="ydim" name="ydim" value="">
+		<input type="hidden" id="filename" name="filename" value="">
 		</form>
 	</body>
 
