@@ -530,11 +530,11 @@
 								}
 							}
 							this.yScale.domain([ymin-(ymax-ymin)*0.03, ymax+(ymax-ymin)*0.27]);
-							this.chartContainer.select("g.y.axis").call(this.yAxis);
+							if (d3.select('#showyaxis').property('checked')) this.chartContainer.select("g.y.axis").call(this.yAxis);
 						}
 						else {
 							this.yScale.domain([this.ymin-(this.ymax-this.ymin)*0.03, this.ymax+(this.ymax-this.ymin)*0.27]);
-							this.chartContainer.select("g.y.axis").call(this.yAxis);
+							if (d3.select('#showyaxis').property('checked')) this.chartContainer.select("g.y.axis").call(this.yAxis);
 						}
 						
 						this.chartContainer.selectAll("text.label").remove();
