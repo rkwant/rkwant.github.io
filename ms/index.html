@@ -210,12 +210,12 @@
 					}
 					
 					this.applyCSS = function() {
-						d3.selectAll('.x.axis path').attr('display', 'none');
+						d3.selectAll('.axis path').attr('display', 'none');
 						d3.selectAll('.axis').attr('shape-rendering', 'crispEdges');
-						d3.selectAll('.x.axis line').attr('stroke', 'black')
+						d3.selectAll('.axis line').attr('stroke', 'black')
 												.attr('stroke-width', '1')
 												.attr('fill', 'none');
-						d3.selectAll('.x.axis .minor').attr('stroke-opacity', '0.5');
+						d3.selectAll('.axis .minor').attr('stroke-opacity', '0.5');
 						d3.selectAll('.domain').attr('fill', 'none')
 											.attr('stroke-width', '1')
 											.attr('stroke', 'black')
@@ -317,6 +317,17 @@
 										.orient("bottom")
 										.ticks(getv("#nticks"));
 										
+						if (d3.select('#showyaxis').property('checked')) {
+							this.yAxis = d3.svg.axis()
+										.scale(this.yScale)
+										.orient("left")
+										.ticks(getv("#nticks"));
+										
+							this.chartContainer.append("svg:g")
+							  .attr("class", "y axis")
+							  .call(this.yAxis);
+						}
+										
 						if (this.id < filedata.length - 1) this.xAxis.tickFormat(function(d) {return ""});
 						else this.xAxis.tickFormat(function(d) {return d})
 						
@@ -324,8 +335,7 @@
 						this.chartContainer.append("svg:g")
 							  .attr("class", "x axis")
 							  .attr("transform", "translate(0," + this.height + ")")
-							  .call(this.xAxis)
-							  ;
+							  .call(this.xAxis);
 						
 						this.plotLine(this.viewmin, this.viewmax);
 						this.findAndDisplayPeaks();
@@ -520,9 +530,12 @@
 								}
 							}
 							this.yScale.domain([ymin-(ymax-ymin)*0.03, ymax+(ymax-ymin)*0.27]);
-							//this.chartContainer.select("g.y.axis").call(this.xAxis);
+							this.chartContainer.select("g.y.axis").call(this.yAxis);
 						}
-						else this.yScale.domain([this.ymin-(this.ymax-this.ymin)*0.03, this.ymax+(this.ymax-this.ymin)*0.27]);
+						else {
+							this.yScale.domain([this.ymin-(this.ymax-this.ymin)*0.03, this.ymax+(this.ymax-this.ymin)*0.27]);
+							this.chartContainer.select("g.y.axis").call(this.yAxis);
+						}
 						
 						this.chartContainer.selectAll("text.label").remove();
 						this.plotLine(this.viewmin, this.viewmax);
@@ -781,6 +794,10 @@
 					redraw();
 				});
 				
+				$("#showyaxis").on("change", function () {
+					redraw();
+				});
+				
 				$('#clear').click(function () {
 					clearsvg();
 				});
@@ -850,7 +867,9 @@
 					<br>
 					<label for="autoscale" >Auto y scale:</label>
 					<input type="checkbox" id="autoscale" checked="checked"></input>
-					
+					<br>
+					<label for="showyaxis" >Show y axis:</label>
+					<input type="checkbox" id="showyaxis"></input>
 				</div>
 			</div>
 			
