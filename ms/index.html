@@ -491,9 +491,7 @@
 					}
 				
 					this.zoom = function(start, stop) {
-						//this.xScale.domain([d3.min([start, stop]), d3.max([start, stop])]);	
-						//svg.select(".x.axis").call(this.xAxis);
-						////console.log('zooming');
+						//find the appropriate x-axis scale
 						if (start==stop) {
 							////console.log('they were equal');
 							this.viewmin = getv('#xmin');
@@ -510,6 +508,21 @@
 						}
 						this.xScale.domain([this.viewmin, this.viewmax]);
 						this.chartContainer.select("g.x.axis").call(this.xAxis);
+						
+						//figure out the y-scaling
+						if (d3.select('#autoscale').property('checked')) {
+							var ymin = 0;
+							var ymax = 0;
+							for (var i = 0; i<this.data.length; i++) {
+								if (this.data[i][0] > this.viewmin && this.data[i][0] < this.viewmax) {
+									if (this.data[i][1] > ymax) ymax = this.data[i][1];
+									if (this.data[i][1] < ymin) ymin = this.data[i][1];
+								}
+							}
+							this.yScale.domain([ymin-(ymax-ymin)*0.03, ymax+(ymax-ymin)*0.27]);
+							//this.chartContainer.select("g.y.axis").call(this.xAxis);
+						}
+						else this.yScale.domain([this.ymin-(this.ymax-this.ymin)*0.03, this.ymax+(this.ymax-this.ymin)*0.27]);
 						
 						this.chartContainer.selectAll("text.label").remove();
 						this.plotLine(this.viewmin, this.viewmax);
