@@ -30,7 +30,13 @@ body, html {
 	width: 300px;
 	float:left;
 	overflow-y: scroll;
-	
+	position:fixed;
+}
+
+#leftbar2 {
+	height:100%;
+	width: 300px;
+	float:left;
 }
 
 
