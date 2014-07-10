@@ -184,14 +184,15 @@
 					this.showpeaks = false;
 					this.integrations = [];
 					this.verticalPadding = 30;
+					this.dragstart = 0;
 					
 					this.xmin = getmin(this.data, 0);
 					this.xmax = getmax(this.data, 0);
 					this.ymin = getmin(this.data, 1);
 					this.ymax = getmax(this.data, 1);
 					
-					this.viewmin = this.xmin;
-					this.viewmax = this.xmax;
+					this.xviewmin = this.xmin;
+					this.xviewmax = this.xmax;
 					
 					//set the axes scales
 					this.setScales = function(width, height, id) {
@@ -200,7 +201,7 @@
 						this.id = id;
 						
 						this.xScale = d3.scale.linear()
-										 .domain([this.viewmin, this.viewmax])
+										 .domain([this.xviewmin, this.xviewmax])
 										 .range([0, this.width]);
 						
 
@@ -309,7 +310,9 @@
 						   .attr('fill', 'none')
 						   .attr('pointer-events', 'all')
 						   .on("mousedown", pandown)
-						   .on("mouseup", panup);
+						   .on("mouseup", panup)
+						   .on("mousemove", pandrag)
+						   .on("mouseout", panout);
 						
 						// create xAxis
 						this.xAxis = d3.svg.axis()
@@ -337,7 +340,7 @@
 							  .attr("transform", "translate(0," + this.height + ")")
 							  .call(this.xAxis);
 						
-						this.plotLine(this.viewmin, this.viewmax);
+						this.plotLine(this.xviewmin, this.xviewmax);
 						this.findAndDisplayPeaks();
 						this.displayIntegration();
 						this.addTitle();
@@ -345,15 +348,7 @@
 						
 						xS1 = this.xScale;
 						yS1 = this.yScale;
-						this.eventSplashZone.on('mousemove', function() {
-							var e = d3.event
-							
-							$('.tooltip').html(xS1.invert(d3.mouse(this)[0]).toFixed(parseInt(getv('#peaksf'))));
-							$('.tooltip').css('left', e.pageX + 10).css('top', e.pageY + 10).css('display', 'block');
-						});
-						this.eventSplashZone.on('mouseout', function() {
-							$('.tooltip').css('display', 'none');
-						});
+						
 					}
 					
 					this.checkPeakMatch = function() {
@@ -392,8 +387,8 @@
 						xS1 = this.xScale;
 						yS1 = this.yScale;
 						
-						var stari = this.viewmin;
-						var stpi = this.viewmax;
+						var stari = this.xviewmin;
+						var stpi = this.xviewmax;
 						var peaksLimited = this.peaks.filter(
 							function(d, i, q) { 
 								if (d[0] > stari && d[0] < stpi) return true;
@@ -440,6 +435,49 @@
 						if (d3.select('#integrate').property('checked')) this.integrate(xstart, xstop);
 						else if (xstop > xstart) this.zoom(xstart, xstop);
 						else this.zoom(xstop,xstart);
+					}
+					
+					this.createRectangle = function(xdata, ydata) {
+						this.dragstart = xdata;
+						this.eventSplashZone.append( "rect")
+											.attr({
+												class   : "selection",
+												x       : xdata,
+												y       : 0,
+												width   : 0,
+												height  : this.height,
+												'stroke': 'gray',
+												'stroke-dasharray': '4px',
+												'stroke-opacity' : '0.5',
+												'fill': 'transparent'
+											});
+					}
+					
+					this.updateRectangle = function(xdata, ydata) {
+						
+						var s = this.eventSplashZone.select( "rect.selection");
+
+						if( !s.empty()) {
+							var d = {
+									x       : parseInt( s.attr( "x"), 10),
+									y       : parseInt( s.attr( "y"), 10),
+									width   : parseInt( s.attr( "width"), 10),
+									height  : parseInt( s.attr( "height"), 10)
+								};
+
+							if (xdata > d.x) d.width = xdata - d.x;
+							else {
+								d.width = this.dragstart - xdata;
+								d.x = xdata;
+							}
+						   
+							s.attr( d);
+						}
+					}
+					
+					this.removeRectangle = function() {
+						console.log('got to removing things');
+						this.eventSplashZone.selectAll( "rect.selection").remove();
 					}
 					
 					this.clearIntegration = function() {
@@ -504,19 +542,19 @@
 						//find the appropriate x-axis scale
 						if (start==stop) {
 							////console.log('they were equal');
-							this.viewmin = getv('#xmin');
-							this.viewmax = getv('#xmax');
+							this.xviewmin = getv('#xmin');
+							this.xviewmax = getv('#xmax');
 							
-							if (this.viewmin == this.viewmax) {
-								this.viewmin = this.xmin;
-								this.viewmax = this.xmax;
+							if (this.xviewmin == this.xviewmax) {
+								this.xviewmin = this.xmin;
+								this.xviewmax = this.xmax;
 							}
 						}
 						else {
-							this.viewmin = start;
-							this.viewmax = stop;
+							this.xviewmin = start;
+							this.xviewmax = stop;
 						}
-						this.xScale.domain([this.viewmin, this.viewmax]);
+						this.xScale.domain([this.xviewmin, this.xviewmax]);
 						this.chartContainer.select("g.x.axis").call(this.xAxis);
 						
 						//figure out the y-scaling
@@ -524,7 +562,7 @@
 							var ymin = 0;
 							var ymax = 0;
 							for (var i = 0; i<this.data.length; i++) {
-								if (this.data[i][0] > this.viewmin && this.data[i][0] < this.viewmax) {
+								if (this.data[i][0] > this.xviewmin && this.data[i][0] < this.xviewmax) {
 									if (this.data[i][1] > ymax) ymax = this.data[i][1];
 									if (this.data[i][1] < ymin) ymin = this.data[i][1];
 								}
@@ -538,7 +576,7 @@
 						}
 						
 						this.chartContainer.selectAll("text.label").remove();
-						this.plotLine(this.viewmin, this.viewmax);
+						this.plotLine(this.xviewmin, this.xviewmax);
 						this.findAndDisplayPeaks();
 						this.displayIntegration();
 						this.applyCSS();
@@ -637,14 +675,35 @@
 					});			
 					setCookies();
 				}
+				
+				////PANNING
 				// On click, update the x-axis.
 				function pandown() {
 					panning = true;
 					panstart = d3.mouse(this)[0];
 					////console.log(panstart);
+					
+					var p = d3.mouse(this);
+					
+					filedata.forEach(function (d, i) {
+						d.createRectangle(p[0], p[1]);
+					});
+				}
+				
+				function pandrag() {
+					var e = d3.event;		
+					$('.tooltip').html(xS1.invert(d3.mouse(this)[0]).toFixed(parseInt(getv('#peaksf'))));
+					$('.tooltip').css('left', e.pageX + 10).css('top', e.pageY + 10).css('display', 'block');
+					
+					var p = d3.mouse(this);
+					filedata.forEach(function (d, i) {
+						d.updateRectangle(p[0], p[1]);
+					});
 				}
 				
 				function panup() {
+					
+					
 					if (panning) {
 						panstop = d3.mouse(this)[0];
 						//console.log(panstart+' '+panstop);
@@ -663,8 +722,20 @@
 						});	
 					}
 					panning = false;
+
+				//	filedata.forEach(function (d, i) {
+				//		d.removeRectangle();
+				//	});
 				}
 				
+				function panout() {
+					$('.tooltip').css('display', 'none');
+					//filedata.forEach(function (d, i) {
+					//	d.removeRectangle();
+					//});
+					//panning = false;
+				}
+			
 				function updatePeaks() {
 					filedata.forEach(function (d, i) {
 						d.repeak();
