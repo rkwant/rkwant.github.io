@@ -35,6 +35,9 @@
 				var historicalxmin = 0;
 				var historicalxmax = 0;
 				
+				var xviewmin = 0;
+				var xviewmax = 0;
+				
 				//panning variables
 				var panstart = 0;
 				var panstop = 0;
@@ -339,6 +342,8 @@
 							  .attr("class", "x axis")
 							  .attr("transform", "translate(0," + this.height + ")")
 							  .call(this.xAxis);
+						this.xviewmax = xviewmax;
+						this.xviewmin = xviewmin;
 						
 						this.plotLine(this.xviewmin, this.xviewmax);
 						this.findAndDisplayPeaks();
@@ -433,8 +438,8 @@
 						////console.log(xstart+' '+xstop);
 						
 						if (d3.select('#integrate').property('checked')) this.integrate(xstart, xstop);
-						else if (xstop > xstart) this.zoom(xstart, xstop);
-						else this.zoom(xstop,xstart);
+						else if (xstop > xstart) this.zoom(xstart, xstop, 'page');
+						else this.zoom(xstop,xstart, 'page');
 					}
 					
 					this.createRectangle = function(xdata, ydata) {
@@ -465,7 +470,7 @@
 									height  : parseInt( s.attr( "height"), 10)
 								};
 
-							if (xdata > d.x) d.width = xdata - d.x;
+							if (xdata > this.dragstart) d.width = xdata - this.dragstart;
 							else {
 								d.width = this.dragstart - xdata;
 								d.x = xdata;
@@ -538,21 +543,23 @@
 						}
 					}
 				
-					this.zoom = function(start, stop) {
+					this.zoom = function(start, stop, coordinates) {
+						
 						//find the appropriate x-axis scale
 						if (start==stop) {
 							////console.log('they were equal');
-							this.xviewmin = getv('#xmin');
-							this.xviewmax = getv('#xmax');
-							
-							if (this.xviewmin == this.xviewmax) {
-								this.xviewmin = this.xmin;
-								this.xviewmax = this.xmax;
-							}
+							this.xviewmin = xviewmin;
+							this.xviewmax = xviewmax;
 						}
 						else {
-							this.xviewmin = start;
-							this.xviewmax = stop;
+							if (coordinates == 'page') {
+								this.xviewmin = this.xScale.invert(start);
+								this.xviewmax = this.xScale.invert(stop);
+							}
+							else {
+								this.xviewmin = start;
+								this.xviewmax = stop;
+							}
 						}
 						this.xScale.domain([this.xviewmin, this.xviewmax]);
 						this.chartContainer.select("g.x.axis").call(this.xAxis);
@@ -664,10 +671,25 @@
 					});		
 				}
 				
+				function setXLimits() { 
+					var minval = parseFloat(getv('#xmin'));
+					var maxval = parseFloat(getv('#xmax'));
+					if (minval > maxval || minval == maxval) {
+						var lastFile = filedata[fileordering[fileordering.length-1]];
+						xviewmin = lastFile.xmin;
+						xviewmax = lastFile.xmax;
+					}
+					else {
+						xviewmin = minval;
+						xviewmax = maxval;
+					}
+				}
+				
 				function plotdata() {
 					//define the width, height, and margins
 					setup_canvas();
 					////console.log(filedata);
+					setXLimits();
 					fileordering.forEach(function (dnum, i) {
 						d = filedata[dnum];
 						d.setScales(w, h/filedata.length, i);
@@ -764,12 +786,16 @@
 				}
 				
 				function adjustXlim() {
-					if (historicalxmin != getv('#xmin') || historicalxmax !=getv('#xmax')) {
-						historicalxmin = getv('#xmin');
-						historicalxmax = getv('#xmax');
-						if (historicalxmax > historicalxmin) {
+					var minval = parseFloat(getv('#xmin'));
+					var maxval = parseFloat(getv('#xmax'));
+					
+					if (historicalxmin != minval || historicalxmax !=maxval) {
+						historicalxmin = minval;
+						historicalxmax = maxval;
+						if (historicalxmax >= historicalxmin) {
+							setXLimits();
 							filedata.forEach(function (d, i) {
-								d.zoom(historicalxmin, historicalxmax);
+								d.zoom(historicalxmin, historicalxmax, 'data');
 							});
 						}
 					}
@@ -871,6 +897,12 @@
 					clearsvg();
 				});
 				
+				$('#resetzoom').click(function () {
+					$("#xmin").val(0);
+					$("#xmax").val(0);
+					adjustXlim();
+				});
+				
 				$('#clearintegrals').click(function (e) {
 					clearIntegrals();
 				});
@@ -935,12 +967,14 @@
 					<input type="text" id="xmin" value='0'  size='3'></input>
 					to
 					<input type="text" id="xmax" value='0'  size='3'></input>
+					<input type='button' id='resetzoom' value='Rst'></input>
 					<br>
 					<label for="autoscale" >Auto y scale:</label>
 					<input type="checkbox" id="autoscale" checked="checked"></input>
 					<br>
 					<label for="showyaxis" >Show y axis:</label>
 					<input type="checkbox" id="showyaxis"></input>
+					
 				</div>
 			</div>
 			
