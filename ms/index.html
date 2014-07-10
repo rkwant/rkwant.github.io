@@ -8,13 +8,13 @@
 		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
 		<script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
 		<script>
-		  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+		/*  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
 		  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
 		  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
 		  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
 
 		  ga('create', 'UA-52357311-1', 'auto');
-		  ga('send', 'pageview'); 
+		  ga('send', 'pageview'); */
 		</script>
 		<script>
 			// Check for the various File API support.
@@ -307,8 +307,8 @@
 						this.eventSplashZone = this.chartContainer.append('svg:rect')
 						   .attr("width", this.width)
 						   .attr("height", this.height)
-						   .attr('fill', 'none')
-						   .attr('pointer-events', 'all')
+						   .attr('fill', 'none');
+						svg.attr('pointer-events', 'all')
 						   .on("mousedown", pandown)
 						   .on("mouseup", panup)
 						   .on("mousemove", pandrag)
@@ -439,7 +439,7 @@
 					
 					this.createRectangle = function(xdata, ydata) {
 						this.dragstart = xdata;
-						this.eventSplashZone.append( "rect")
+						this.chartContainer.append( "rect")
 											.attr({
 												class   : "selection",
 												x       : xdata,
@@ -455,7 +455,7 @@
 					
 					this.updateRectangle = function(xdata, ydata) {
 						
-						var s = this.eventSplashZone.select( "rect.selection");
+						var s = this.chartContainer.select( "rect.selection");
 
 						if( !s.empty()) {
 							var d = {
@@ -477,7 +477,7 @@
 					
 					this.removeRectangle = function() {
 						console.log('got to removing things');
-						this.eventSplashZone.selectAll( "rect.selection").remove();
+						this.chartContainer.selectAll( "rect.selection").remove();
 					}
 					
 					this.clearIntegration = function() {
@@ -681,7 +681,7 @@
 				function pandown() {
 					panning = true;
 					panstart = d3.mouse(this)[0];
-					////console.log(panstart);
+					console.log(panstart);
 					
 					var p = d3.mouse(this);
 					
@@ -702,13 +702,11 @@
 				}
 				
 				function panup() {
-					
-					
 					if (panning) {
 						panstop = d3.mouse(this)[0];
 						//console.log(panstart+' '+panstop);
 						
-						//console.log(this);
+						console.log(this);
 						for (var i = 0; i<filedata.length; i++) {
 							if (filedata[i].eventSplashZone[0][0] == this) {
 								panstart = filedata[i].xScale.invert(panstart);
@@ -723,9 +721,9 @@
 					}
 					panning = false;
 
-				//	filedata.forEach(function (d, i) {
-				//		d.removeRectangle();
-				//	});
+					filedata.forEach(function (d, i) {
+						d.removeRectangle();
+					});
 				}
 				
 				function panout() {
