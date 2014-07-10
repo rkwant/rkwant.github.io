@@ -196,8 +196,6 @@
 					
 					this.xviewmin = this.xmin;
 					this.xviewmax = this.xmax;
-					this.yviewmin = this.ymin;
-					this.yviewmax = this.ymax;
 					
 					//set the axes scales
 					this.setScales = function(width, height, id) {
@@ -205,16 +203,13 @@
 						this.height = height - this.verticalPadding;
 						this.id = id;
 						
-						this.xviewmin = xviewmin;
-						this.xviewmax = xviewmax;
-						
 						this.xScale = d3.scale.linear()
 										 .domain([this.xviewmin, this.xviewmax])
 										 .range([0, this.width]);
 						
 
 						this.yScale = d3.scale.linear()
-										 .domain([this.yviewmin-(this.yviewmax-this.yviewmin)*0.03, this.yviewmax+(this.yviewmax-this.yviewmin)*0.27])
+										 .domain([this.ymin-(this.ymax-this.ymin)*0.03, this.ymax+(this.ymax-this.ymin)*0.27])
 										 .range([this.height, 0]);
 					}
 					
@@ -530,8 +525,8 @@
 												.attr("class", "integrationline")
 												.attr("x1", this.xScale(start))
 												.attr("x2", this.xScale(stop))
-												.attr("y1", this.yScale(this.yviewmax+(this.yviewmax-this.yviewmin)*0.1))
-												.attr("y2", this.yScale(this.yviewmax+(this.yviewmax-this.yviewmin)*0.1))
+												.attr("y1", this.yScale(this.ymax+(this.ymax-this.ymin)*0.1))
+												.attr("y2", this.yScale(this.ymax+(this.ymax-this.ymin)*0.1))
 												.attr("stroke-width", 1)
 												.attr("stroke", "black");
 							
@@ -539,7 +534,7 @@
 							this.chartContainer.append("text")
 												.attr("class", "integrationlabel")
 												.attr("x", this.xScale((start+stop)/2.0))
-												.attr("y", this.yScale(this.yviewmax+(this.yviewmax-this.yviewmin)*0.12))
+												.attr("y", this.yScale(this.ymax+(this.ymax-this.ymin)*0.12))
 												.text(intvalue.toFixed(parseInt(getv('#intsf'))))
 												.attr("font-family", "sans-serif")
 												.attr("font-size", "13px")
@@ -559,14 +554,10 @@
 							if (coordinates == 'page') {
 								this.xviewmin = this.xScale.invert(start);
 								this.xviewmax = this.xScale.invert(stop);
-								xviewmin = this.xviewmin;
-								xviewmax = this.xviewmax;
 							}
 							else {
 								this.xviewmin = start;
 								this.xviewmax = stop;
-								xviewmin = this.xviewmin;
-								xviewmax = this.xviewmax;
 							}
 						}
 						this.xScale.domain([this.xviewmin, this.xviewmax]);
@@ -574,20 +565,18 @@
 						
 						//figure out the y-scaling
 						if (d3.select('#autoscale').property('checked')) {
-							this.yviewmin = 0;
-							this.yviewmax = 0;
+							var ymin = 0;
+							var ymax = 0;
 							for (var i = 0; i<this.data.length; i++) {
 								if (this.data[i][0] > this.xviewmin && this.data[i][0] < this.xviewmax) {
-									if (this.data[i][1] > this.yviewmax) this.yviewmax = this.data[i][1];
-									if (this.data[i][1] < this.yviewmin) this.yviewmin = this.data[i][1];
+									if (this.data[i][1] > ymax) ymax = this.data[i][1];
+									if (this.data[i][1] < ymin) ymin = this.data[i][1];
 								}
 							}
-							this.yScale.domain([this.yviewmin-(this.yviewmax-this.yviewmin)*0.03, this.yviewmax+(this.yviewmax-this.yviewmin)*0.27]);
+							this.yScale.domain([ymin-(ymax-ymin)*0.03, ymax+(ymax-ymin)*0.27]);
 							if (d3.select('#showyaxis').property('checked')) this.chartContainer.select("g.y.axis").call(this.yAxis);
 						}
 						else {
-							this.yviewmin = this.ymin;
-							this.yviewmax = this.ymax;
 							this.yScale.domain([this.ymin-(this.ymax-this.ymin)*0.03, this.ymax+(this.ymax-this.ymin)*0.27]);
 							if (d3.select('#showyaxis').property('checked')) this.chartContainer.select("g.y.axis").call(this.yAxis);
 						}
