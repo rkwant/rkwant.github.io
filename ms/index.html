@@ -450,11 +450,7 @@
 												x       : xdata,
 												y       : 0,
 												width   : 0,
-												height  : this.height,
-												'stroke': 'gray',
-												'stroke-dasharray': '4px',
-												'stroke-opacity' : '0.5',
-												'fill': 'transparent'
+												height  : this.height
 											});
 					}
 					
@@ -481,7 +477,7 @@
 					}
 					
 					this.removeRectangle = function() {
-						console.log('got to removing things');
+						//console.log('got to removing things');
 						this.chartContainer.selectAll( "rect.selection").remove();
 					}
 					
@@ -491,6 +487,9 @@
 					}
 					
 					this.integrate = function(start, stop) {
+						start = this.xScale.invert(start);
+						stop = this.xScale.invert(stop);
+						
 						var sum = 0;
 						for (var i = 0; i < this.data.length-1; i++) {
 							var p1x = this.data[i][0];
@@ -703,7 +702,7 @@
 				function pandown() {
 					panning = true;
 					panstart = d3.mouse(this)[0];
-					console.log(panstart);
+					//console.log(panstart);
 					
 					var p = d3.mouse(this);
 					
@@ -728,7 +727,7 @@
 						panstop = d3.mouse(this)[0];
 						//console.log(panstart+' '+panstop);
 						
-						console.log(this);
+						//console.log(this);
 						for (var i = 0; i<filedata.length; i++) {
 							if (filedata[i].eventSplashZone[0][0] == this) {
 								panstart = filedata[i].xScale.invert(panstart);
