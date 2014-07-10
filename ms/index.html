@@ -800,7 +800,8 @@
 					}
 				}
 				
-				var formIDs = ['graphwidth', 'graphheight', 'lookahead', 'cutoff', 'peaksf', 'intsf', 'nticks', 'linecolor'];
+				var formIDs = ['showtitles', 'graphwidth', 'graphheight', 'autoscale', 'showyaxis', 'lookahead', 
+				'cutoff', 'peaksf', 'intsf', 'nticks', 'linecolor', 'fname'];
 				var today = new Date();
 				var expiry = new Date(today.getTime() + 30 * 24 * 3600 * 1000); // plus 30 days
 				
@@ -907,6 +908,7 @@
 				});
 				
 				$('#download').click(function (e) {
+					setCookies();
 					// Get the d3js SVG element
 					var svg = document.getElementById("graphcanvas");
 					// Extract the data as SVG text string
@@ -925,6 +927,7 @@
 				});
 				
 				$('#svgdownload').click(function (e) {
+					setCookies();
 					var e = document.createElement('script');
 					if (window.location.protocol === 'https:') { 
 						e.setAttribute('src', 'https://raw.github.com/NYTimes/svg-crowbar/gh-pages/svg-crowbar.js'); 
