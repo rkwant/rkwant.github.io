@@ -84,7 +84,7 @@ a {
 }
 
 .Table-Cell .tooltip {
-		position: fixed; /** depends on how it handles the e.pageX and e.pageY **/
+		position: absolute; /** depends on how it handles the e.pageX and e.pageY **/
         /*width: 80px;
         height: 30px;*/
         background: #FFF;
