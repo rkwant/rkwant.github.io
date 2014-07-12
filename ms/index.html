@@ -953,7 +953,7 @@
 				
 				$("body").keypress(function(e) {
 					//type i, code = 73
-					console.log(e.keyCode);
+					//console.log(e.which);
 					if (e.keyCode==122) {
 						$("#radio1").click();
 					}
@@ -1070,20 +1070,7 @@
 				<a target="_blank" href="https://docs.google.com/forms/d/1F2txuHR11TZrUm9LmUvtCplzn_kmpVkZ_vSqu1VeyAw/viewform?usp=send_form">Feedback</a>
 				|
 				 <a href = "javascript:void(0)" onclick = "document.getElementById('light').style.display='block';document.getElementById('fade').style.display='block'">Shortcuts and directions</a>
-					<div id="light" class="white_content">
-						To change plot titles, click on the title in the files box and type in a new name.
-						<br>
-						<br>
-						You can zoom by clicking and dragging on the graph canvas.  Zoom out by clicking on the graph without dragging.
-						<br>
-						<br>
-						Ticks are always shown at the ends of the axes.  If you see ticks without labels, try typing round numbers into the x limits boxes.
-						
-						
-						
-						<a href = "javascript:void(0)" onclick = "document.getElementById('light').style.display='none';document.getElementById('fade').style.display='none'">Close</a>
-					</div>
-					<div id="fade" class="black_overlay" onclick = "document.getElementById('light').style.display='none';document.getElementById('fade').style.display='none'"></div>
+					
 			</div>
 		</div>
 		
@@ -1096,7 +1083,30 @@
 			<div class="tooltip">Tooltip</div>
 		  </div>
 		</div>
-
+<div id="light" class="white_content">
+						To change plot titles, click on the title in the files box and type in a new name.
+						<br>
+						<br>
+						You can zoom by clicking and dragging on the graph canvas.  Zoom out by clicking on the graph without dragging.
+						<br>
+						<br>
+						Ticks are always shown at the ends of the axes.  If you see ticks without labels, try typing round numbers into the x limits boxes.
+						<br>
+						<br>
+						Keyboard shortcuts:
+						<br>
+						z: zoom
+						<br>
+						i: integrate
+						<br>
+						p: peakpick
+						<br>
+						f: zoom out
+						
+						
+						<a href = "javascript:void(0)" onclick = "document.getElementById('light').style.display='none';document.getElementById('fade').style.display='none'">Close</a>
+					</div>
+					<div id="fade" class="black_overlay" onclick = "document.getElementById('light').style.display='none';document.getElementById('fade').style.display='none'"></div>
 		
 		<form id="svgform" method="post" action="http://mbfgrp.cchem.berkeley.edu/plotting/splash.php">
 		<input type="hidden" id="output_format" name="output_format" value="">
