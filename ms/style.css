@@ -34,19 +34,39 @@ body, html {
 
 #leftbar {
 	height:100%;
-	width: 300px;
+	width: 310px;
 	float:left;
 	overflow-y: scroll;
 	position:fixed;
+	font-family: 'Rokkitt', serif;
 }
 
 #leftbar2 {
 	height:100%;
-	width: 300px;
+	width: 310px;
 	float:left;
 }
 
+.title {
+	margin: 10px 0px 0px 10px;
+	font-size:20pt;
+}
 
+#rdio {
+	margin: 0px 0px 30px 10px;
+	font-size:100%;
+}
+
+#rdio label {
+	width: 93px;
+}
+
+#rdio label span{
+	font-size:12pt;
+	font-family: 'Rokkitt', serif;
+	padding:1px;
+	width: 93px;
+}
 
 .sliderbox {
 	margin: 20px 10px 5px 10px;
@@ -54,7 +74,7 @@ body, html {
 	/*border: 1px solid #1B52BF;*/
 	border-radius:5px;
 	box-shadow: 1px 1px 10px #999;
-	font-family: 'Rokkitt', serif;
+	
 }
 
 .slidercontent {
