@@ -950,6 +950,7 @@
 				});
 				
 				$( "#rdio" ).buttonset();
+				$( "#rdio2" ).buttonset();
 				
 				$("body").keypress(function(e) {
 					//type i, code = 73
@@ -1003,7 +1004,13 @@
 			<div id="general" class="sliderbox">
 				<p>General</p>
 				<div class="slidercontent">
-					<label for="graphwidth">Plot size:</label>
+					<div id="rdio2">
+						<input type="radio" id="plotradio1" name="radio2" checked="checked"><label for="plotradio1">Plot</label>
+						<input type="radio" id="plotradio2" name="radio2"><label for="plotradio2">Subplot</label>
+						<!--<input type="radio" id="radio3" name="radio"><label for="radio3">Pick Peaks</label>-->
+					</div>
+					
+					
 					<input type="text" id="graphwidth" value='600' size='3'></input>
 					by
 					<input type="text" id="graphheight" value='400' size='3'></input> px
