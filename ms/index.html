@@ -659,6 +659,9 @@
 				function setup_canvas() {
 					w = parseFloat(d3.select('#graphwidth').property('value'));
 					h = parseFloat(d3.select('#graphheight').property('value'));
+					
+					if (d3.select('#plotradio2').property('checked')) h = h*filedata.length;
+					
 					m = [80, 80, 80, 80];
 					
 					//Create SVG element
@@ -856,6 +859,14 @@
 					redraw();
 				});
 				
+				$('#plotradio1').on('change', function() {
+					redraw();
+				});
+				
+				$('#plotradio2').on('change', function() {
+					redraw();
+				});
+				
 				$("#linecolor").on('keyup change', function() {
 					applyCSS();
 				});
@@ -1006,8 +1017,7 @@
 				<div class="slidercontent">
 					<div id="rdio2">
 						<input type="radio" id="plotradio1" name="radio2" checked="checked"><label for="plotradio1">Plot</label>
-						<input type="radio" id="plotradio2" name="radio2"><label for="plotradio2">Subplot</label>
-						<!--<input type="radio" id="radio3" name="radio"><label for="radio3">Pick Peaks</label>-->
+						<input type="radio" id="plotradio2" name="radio2"><label for="plotradio2">Axes</label>
 					</div>
 					
 					
