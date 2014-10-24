@@ -664,8 +664,8 @@
 				}
 				
 				function setup_canvas() {
-					w = parseFloat(d3.select('#graphwidth').property('value'));
-					h = parseFloat(d3.select('#graphheight').property('value'));
+					w = parseFloat(d3.select('#graphwidth').property('value')) / 72.0;
+					h = parseFloat(d3.select('#graphheight').property('value')) / 72.0;
 					
 					if (d3.select('#plotradio2').property('checked')) h = h*filedata.length;
 					
@@ -1036,7 +1036,7 @@
 					
 					<input type="text" id="graphwidth" value='600' size='3'></input>
 					by
-					<input type="text" id="graphheight" value='400' size='3'></input> px
+					<input type="text" id="graphheight" value='400' size='3'></input> in
 					<br>
 					<label for="xmin">X limits:</label>
 					<input type="text" id="xmin" value='0'  size='3'></input>
