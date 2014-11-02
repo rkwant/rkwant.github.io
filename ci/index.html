@@ -1,0 +1,182 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="icon" href="../../favicon.ico">
+
+    <title>Starter Template for Bootstrap</title>
+
+    <!-- Bootstrap core CSS -->
+    <!-- Latest compiled and minified CSS -->
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.0/css/bootstrap.min.css">
+	<link rel="stylesheet" href="styles.css">
+
+	<!-- Optional theme -->
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.0/css/bootstrap-theme.min.css">
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+  <script>
+  
+  $(document).ready(function() {
+	var lines;
+	
+	$('#calculate').click(function() {
+		var datastring = $('#data-input').val();
+		datastring = datastring.replace(/[^0-9\,\n\r]*/gi, '');
+		lines = datastring.split(/[\n\r]/g);
+		console.log(lines);
+		calculateStatistics();
+	});
+	
+	function calculateStatistics() {
+		for (var i = 0; i < lines.length; i++) {
+			numbers = lines[i].split(',').map(function(item) {return parseFloat(item)});
+			console.log(numbers);
+			console.log(getMean(numbers));
+			console.log(getSTD(numbers));
+		}
+	}
+	
+	function getMean(arr) {
+		var runningTotal = 0;
+		for (var i=0; i<arr.length; i++) {
+			runningTotal += arr[i];
+		}
+		return runningTotal / arr.length;
+	}
+	
+	function getSTD(arr) {
+		var runningTotal = 0;
+		var mean = getMean(arr);
+		
+		for (var i=0; i<arr.length; i++) {
+			runningTotal += (mean - arr[i])*(mean - arr[i]);
+		}
+		return Math.sqrt(runningTotal / arr.length);
+	}
+	
+	//from www.math.ucla.edu/~tom/distributions/tDist.html
+	function LogGamma(Z) {
+		with (Math) {
+			var S=1+76.18009173/Z-86.50532033/(Z+1)+24.01409822/(Z+2)-1.231739516/(Z+3)+.00120858003/(Z+4)-.00000536382/(Z+5);
+			var LG= (Z-.5)*log(Z+4.5)-(Z+4.5)+log(S*2.50662827465);
+		}
+		return LG
+	}
+
+	//from www.math.ucla.edu/~tom/distributions/tDist.html
+	function Betinc(X,A,B) {
+		var A0=0;
+		var B0=1;
+		var A1=1;
+		var B1=1;
+		var M9=0;
+		var A2=0;
+		var C9;
+		while (Math.abs((A1-A2)/A1)>.00001) {
+			A2=A1;
+			C9=-(A+M9)*(A+B+M9)*X/(A+2*M9)/(A+2*M9+1);
+			A0=A1+C9*A0;
+			B0=B1+C9*B0;
+			M9=M9+1;
+			C9=M9*(B-M9)*X/(A+2*M9-1)/(A+2*M9);
+			A1=A0+C9*A1;
+			B1=B0+C9*B1;
+			A0=A0/B1;
+			B0=B0/B1;
+			A1=A1/B1;
+			B1=1;
+		}
+		return A1/A
+	}
+
+	//from www.math.ucla.edu/~tom/distributions/tDist.html
+	function compute(form) {
+		X=eval(form.argument.value)
+		df=eval(form.df.value)
+		with (Math) {
+			if (df<=0) {
+				alert("Degrees of freedom must be positive")
+			} else {
+				A=df/2;
+				S=A+.5;
+				Z=df/(df+X*X);
+				BT=exp(LogGamma(S)-LogGamma(.5)-LogGamma(A)+A*log(Z)+.5*log(1-Z));
+				if (Z<(A+1)/(S+2)) {
+					betacdf=BT*Betinc(Z,A,.5)
+				} else {
+					betacdf=1-BT*Betinc(1-Z,.5,A)
+				}
+				if (X<0) {
+					tcdf=betacdf/2
+				} else {
+					tcdf=1-betacdf/2
+				}
+			}
+			tcdf=round(tcdf*100000)/100000;
+		}
+		form.result.value = tcdf;
+	}
+	
+  });
+  
+  </script>
+  
+  </head>
+
+  <body>
+
+    <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="#">Project name</a>
+        </div>
+        <div id="navbar" class="collapse navbar-collapse">
+          <ul class="nav navbar-nav">
+            <li><a href="../index.html">Home</a></li>
+            <li><a href="../ms/index.html">MS</a></li>
+            <li><a href="../chroma/index.html">Affinity Chromatography</a></li>
+			<li class="active"><a href="#">Confidence Intervals</a></li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </nav>
+
+    <div class="container">
+		<div class="starter-text">
+			<h2>
+				Calculate confidence intervals and compare samples
+			</h2>
+		</div>
+		Input your data here, each measurement separated by commas, and sets separated by lines.
+		<br>
+		<textarea rows="10" cols="100" id="data-input"></textarea>
+		<input type="button" id="calculate" value="calculate"/>
+
+    </div><!-- /.container -->
+
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    
+    <script src="../../dist/js/bootstrap.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.0/js/bootstrap.min.js"></script>
+  </body>
+</html>
