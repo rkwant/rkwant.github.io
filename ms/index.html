@@ -266,21 +266,38 @@
 									 });
 						//add the line to the graph
 						
-						dataPerPixel = this.data.length/ (this.width * (this.xmax - this.xmin) / (stop - start));
+						dataPerPixel = this.data.length / (this.width * (this.xmax - this.xmin) / (stop - start));
+						pixelWidth = (stop - start) / this.width;
+						//console.log(dataPerPixel);
+						//console.log(pixelWidth);
 						datastart = start;
 						datastop = stop;
 						
 						////console.log(this.data.length);
 						var dataResampled = this.data.filter(
 							function(d, i, q) { 
+								//see if the point is one pixel away from last one
 								var toremove = i % Math.ceil(dataPerPixel) == 0;
+								//console.log(d);
+								
+								//if it's outside of the window, don't include the point
 								if (d[0] < start || d[0] > stop) return false;
+								
+								//if this point is between others, don't include it
 								if (!toremove && i>0 && i<q.length-2) {
 									var prev = q[i-1][1];
 									var thi = q[i][1];
 									var next = q[i+1][1];
-									if ((prev < thi && thi < next) || (prev > thi && thi > next)) return false;
+									
+									var previous_x = q[i-1][0];
+									var current_x = q[i][0];
+									var next_x = q[i+1][0];
+									
+									if (current_x - previous_x < pixelWidth && next_x - current_x < pixelWidth) {
+										if ((prev < thi && thi < next) || (prev > thi && thi > next)) return false;
+									}
 								}
+								//console.log('included');
 								return true;
 							}
 						);
