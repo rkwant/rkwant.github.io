@@ -44,6 +44,8 @@
 			console.log(numbers);
 			console.log(getMean(numbers));
 			console.log(getSTD(numbers));
+			console.log(compute(1,1));
+			console.log(getConfidence(1, 0.95));
 		}
 	}
 	
@@ -63,6 +65,26 @@
 			runningTotal += (mean - arr[i])*(mean - arr[i]);
 		}
 		return Math.sqrt(runningTotal / arr.length);
+	}
+	
+	function getConfidence(df, prob) {
+		var yintercept = 1.0- ((1-prob) / 2.0);
+		var error = 1.0;
+		var xval = 0;
+		var slope = 0.0;
+		var dx = 0.01
+		
+		while (Math.abs(error) > 0.00001) {
+			error = compute(xval, df) - yintercept;
+			dy = compute(xval+dx, df) - yintercept;
+			slope = (dy-error) / dx;
+			xval = xval - (error / slope);
+			
+			console.log({'yintercept':yintercept,'error':error, 'dy':dy, 'slope':slope, 'xval':xval});
+
+		
+		}
+		return xval;
 	}
 	
 	//from www.math.ucla.edu/~tom/distributions/tDist.html
@@ -101,9 +123,7 @@
 	}
 
 	//from www.math.ucla.edu/~tom/distributions/tDist.html
-	function compute(form) {
-		X=eval(form.argument.value)
-		df=eval(form.df.value)
+	function compute(X, df) {
 		with (Math) {
 			if (df<=0) {
 				alert("Degrees of freedom must be positive")
@@ -125,7 +145,7 @@
 			}
 			tcdf=round(tcdf*100000)/100000;
 		}
-		form.result.value = tcdf;
+		return tcdf;
 	}
 	
   });
@@ -168,6 +188,10 @@
 		<br>
 		<textarea rows="10" cols="100" id="data-input"></textarea>
 		<input type="button" id="calculate" value="calculate"/>
+		
+		<div id="results">
+		The results will go here
+		</div>
 
     </div><!-- /.container -->
 
