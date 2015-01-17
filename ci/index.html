@@ -18,6 +18,7 @@
 
 	<!-- Optional theme -->
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.0/css/bootstrap-theme.min.css">
+	<script src="d3.min.js"></script>
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
     <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
@@ -25,27 +26,147 @@
       <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
       <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
     <![endif]-->
+  
+  <style>
+.errorbar{
+stroke:#000;
+}
+  
+  
+.bar {
+  fill: steelblue;
+}
+
+.bar:hover {
+  fill: brown;
+}
+
+.axis {
+  font: 10px sans-serif;
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+.x.axis path {
+  display: none;
+}
+
+</style>
+  
   <script>
   
   $(document).ready(function() {
 	var lines;
+	var data;
 	
 	$('#calculate').click(function() {
 		var datastring = $('#data-input').val();
-		datastring = datastring.replace(/[^0-9\,\n\r]*/gi, '');
+		datastring = datastring.replace(/[^0-9\,\.\n\r]*/gi, '');
 		lines = datastring.split(/[\n\r]/g);
 		console.log(lines);
 		calculateStatistics();
+		makeGraph();
 	});
 	
+	function makeGraph() {
+		var margin = {top: 20, right: 20, bottom: 30, left: 40},
+			width = 960 - margin.left - margin.right,
+			height = 500 - margin.top - margin.bottom;
+
+		var x = d3.scale.ordinal()
+			.rangeRoundBands([0, width], .1);
+
+		var y = d3.scale.linear()
+			.range([height, 0]);
+
+		var xAxis = d3.svg.axis()
+			.scale(x)
+			.orient("bottom");
+
+		var yAxis = d3.svg.axis()
+			.scale(y)
+			.orient("left")
+			.ticks(10);
+
+		var svg = d3.select("#results").append("svg")
+			.attr("width", width + margin.left + margin.right)
+			.attr("height", height + margin.top + margin.bottom)
+		  .append("g")
+			.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+		
+		  x.domain(data.map(function(d) { return d.sample; }));
+		  y.domain([0, d3.max(data, function(d) { return d.mean+d.ci; })]);
+
+		  svg.append("g")
+			  .attr("class", "x axis")
+			  .attr("transform", "translate(0," + height + ")")
+			  .call(xAxis);
+
+		  svg.append("g")
+			  .attr("class", "y axis")
+			  .call(yAxis)
+			.append("text")
+			  .attr("transform", "rotate(-90)")
+			  .attr("y", 6)
+			  .attr("dy", ".71em")
+			  .style("text-anchor", "end")
+			  .text("");
+
+		  svg.selectAll(".bar")
+			  .data(data)
+			.enter().append("rect")
+			  .attr("class", "bar")
+			  .attr("x", function(d) { return x(d.sample); })
+			  .attr("width", x.rangeBand())
+			  .attr("y", function(d) { return y(d.mean); })
+			  .attr("height", function(d) { return height - y(d.mean); });
+		
+		barbwidth = x.rangeBand() / 20.0
+		data.forEach(function(d, i) {
+			console.log(d);
+			svg.append("svg:line")
+				.attr("class", "errorbar")
+				.attr("x1", x(d.sample)+x.rangeBand() / 2.0)
+				.attr("y1", y(d.mean - d.ci))
+				.attr("x2", x(d.sample)+x.rangeBand() / 2.0)
+				.attr("y2", y(d.mean + d.ci))
+				
+				
+			svg.append("svg:line")
+				.attr("class", "errorbar")
+				.attr("x1", x(d.sample)+x.rangeBand() / 2.0 -barbwidth)
+				.attr("y1", y(d.mean - d.ci))
+				.attr("x2", x(d.sample)+x.rangeBand() / 2.0 +barbwidth)
+				.attr("y2", y(d.mean - d.ci))
+				
+				
+			svg.append("svg:line")
+				.attr("class", "errorbar")
+				.attr("x1", x(d.sample)+x.rangeBand() / 2.0 - barbwidth)
+				.attr("y1", y(d.mean + d.ci))
+				.attr("x2", x(d.sample)+x.rangeBand() / 2.0 + barbwidth)
+				.attr("y2", y(d.mean + d.ci))
+				
+		});
+			
+
+	}
+
+	
 	function calculateStatistics() {
+		$('#results').html('');
+		data = [];
 		for (var i = 0; i < lines.length; i++) {
 			numbers = lines[i].split(',').map(function(item) {return parseFloat(item)});
-			console.log(numbers);
-			console.log(getMean(numbers));
-			console.log(getSTD(numbers));
-			console.log(compute(1,1));
-			console.log(getConfidence(1, 0.95));
+			var theText = 'Mean: '+getMean(numbers)+', Std: '+getSTD(numbers)+', 95% CI:'+getConfidence(numbers.length-1, 0.95)*getSTD(numbers) / Math.sqrt(numbers.length-1);
+			$('#results').html($('#results').html()+theText+'<br>\n');
+			data.push({"sample":i+1, "mean":getMean(numbers), "std":getSTD(numbers), "ci":getConfidence(numbers.length-1, 0.95)*getSTD(numbers) / Math.sqrt(numbers.length-1)});
 		}
 	}
 	
@@ -79,10 +200,6 @@
 			dy = compute(xval+dx, df) - yintercept;
 			slope = (dy-error) / dx;
 			xval = xval - (error / slope);
-			
-			console.log({'yintercept':yintercept,'error':error, 'dy':dy, 'slope':slope, 'xval':xval});
-
-		
 		}
 		return xval;
 	}
