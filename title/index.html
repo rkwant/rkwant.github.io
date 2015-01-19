@@ -55,7 +55,7 @@ var nodes = d3.range(70).map(function() { return {radius: Math.random() * 2 + 4}
     color = d3.scale.category10();
 
 var force = d3.layout.force()
-    .gravity(0.0)
+    .gravity(0.00)
     .charge(function(d, i) { return i ? 0 : -1000; })
     .nodes(nodes)
     .size([w, h]);
@@ -113,6 +113,62 @@ function getClosestTwo(point, points) {
 	});
 	return mins;
 }
+
+
+function getClosestEdge(point, points) {
+    shortest = {"x":1, "y":1, "distance":10000};
+	
+	for (var i = 0; i < points.length; i++) {
+		p1 = points[i];
+		p2 = points[i == points.length-1 ? 0 : i+1];
+		
+		var letterEdge = {"x":p1.x-p2.x, "y":p1.y-p2.y};
+		var edgeDist = getDist(letterEdge);
+		var unitVector = vScale(1.0/edgeDist, letterEdge);
+		var fromPt = {"x":p1.x - point.x, "y":p1.y - point.y};
+		var projection = vScale(getDot(fromPt, unitVector), unitVector);
+        var norm = vSub(fromPt, projection);
+		
+		if (getDist(norm) < shortest.distance) shortest = {"x":norm.x, "y":norm.y, "distance":getDist(norm)};
+	}
+	return shortest;
+}
+
+function getEdgeSum(point, points) {
+    var output = {"x":0, "y":0};
+	
+	for (var i = 0; i < points.length; i++) {
+		p1 = points[i];
+		p2 = points[i == points.length-1 ? 0 : i+1];
+		
+		var letterEdge = {"x":p1.x-p2.x, "y":p1.y-p2.y};
+		var edgeDist = getDist(letterEdge);
+		var unitVector = vScale(1.0/edgeDist, letterEdge);
+		var fromPt = {"x":p1.x - point.x, "y":p1.y - point.y};
+		var projection = vScale(getDot(fromPt, unitVector), unitVector);
+        var norm = vSub(fromPt, projection);
+		
+		output = vAdd(norm, output);
+	}
+	return output;
+}
+
+
+function getDist(a) {
+	return Math.sqrt((a.x)*(a.x)+(a.y)*(a.y));
+}
+function getDot(a,b) {
+	return a.x*b.x + a.y*b.y;
+}
+function vScale(scale, v) {
+	return {"x":scale*v.x, "y":scale*v.y};
+}
+function vAdd(a, b) {
+	return {"x":a.x+b.x, "y":a.y+b.y};
+}
+function vSub(a, b) {
+	return {"x":a.x-b.x, "y":a.y-b.y};
+}
 	
 force.on("tick", function(e) {
   var points = [{"x":122.186, "y":143.518}, 
@@ -143,15 +199,12 @@ force.on("tick", function(e) {
 	o.color = "#FF0000";
 	if (!pointInPolygon(o, points)) {
 		o.color = "#000000";
+		var norm = getClosestEdge(o, points);
 		
-		m = getClosestTwo(o, points);
-		
-		m.forEach(function(k) {	
-			var distance = Math.sqrt((k.x-o.x)*(k.x-o.x) + (k.y-o.y)*(k.y-o.y));
-			var force = -1.5 / (distance);
-			o.y += (o.y - k.y)* force;
-			o.x += (o.x - k.x)* force;
-		});
+		var force = 1.0 / getDist(norm);
+		o.y += norm.y * force;
+		o.x += norm.x * force;
+		//force.stop();
 	}
   });
 
