@@ -63,6 +63,7 @@ stroke:#000;
   $(document).ready(function() {
 	var lines;
 	var data;
+	var points;
 	
 	$('#calculate').click(function() {
 		var datastring = $('#data-input').val();
@@ -153,8 +154,17 @@ stroke:#000;
 				.attr("x2", x(d.sample)+x.rangeBand() / 2.0 + barbwidth)
 				.attr("y2", y(d.mean + d.ci))
 				
-		});
 			
+				
+		});
+		svg.selectAll(".dot")
+				.data(points)
+				.enter().append("circle")
+				  .attr("class", "dot")
+				  .attr("r", 3.5)
+				  .attr("cx", function(k) {return x(k.x)+x.rangeBand()/2.0})
+				  .attr("cy", function(k) { return y(k.y); })
+				  .style("fill", '#000000');	
 
 	}
 
@@ -162,11 +172,13 @@ stroke:#000;
 	function calculateStatistics() {
 		$('#results').html('');
 		data = [];
+		points=[];
 		for (var i = 0; i < lines.length; i++) {
 			numbers = lines[i].split(',').map(function(item) {return parseFloat(item)});
 			var theText = 'Mean: '+getMean(numbers)+', Std: '+getSTD(numbers)+', 95% CI:'+getConfidence(numbers.length-1, 0.95)*getSTD(numbers) / Math.sqrt(numbers.length-1);
 			$('#results').html($('#results').html()+theText+'<br>\n');
 			data.push({"sample":i+1, "mean":getMean(numbers), "std":getSTD(numbers), "ci":getConfidence(numbers.length-1, 0.95)*getSTD(numbers) / Math.sqrt(numbers.length-1)});
+			numbers.forEach(function(d,i){points.push({"x":i+1, "y":d})});
 		}
 	}
 	

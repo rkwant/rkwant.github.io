@@ -1,0 +1,214 @@
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
+    <script type="text/javascript" src="d3.js"></script>
+    <script type="text/javascript" src="d3.geom.js"></script>
+    <script type="text/javascript" src="d3.layout.js"></script>
+    <link type="text/css" rel="stylesheet" href="style.css"/>
+    <style type="text/css">
+
+circle {
+  stroke: #000;
+  stroke-opacity: .5;
+}
+
+    </style>
+  </head>
+  <body>
+    <div id="body">
+      <div id="footer">
+        Collision Detection
+        <div class="hint">move the mouse to repel nodes</div>
+      </div>
+    </div>
+    <script type="text/javascript">
+
+	
+	//http://bl.ocks.org/bycoffe/5575904
+ // from https://github.com/substack/point-in-polygon
+      pointInPolygon = function (point, vs) {
+        // ray-casting algorithm based on
+        // http://www.ecse.rpi.edu/Homepages/wrf/Research/Short_Notes/pnpoly.html
+        var xi, xj, i, intersect,
+            x = point.x,
+            y = point.y,
+            inside = false;
+        for (var i = 0, j = vs.length - 1; i < vs.length; j = i++) {
+          xi = vs[i].x,
+          yi = vs[i].y,
+          xj = vs[j].x,
+          yj = vs[j].y,
+          intersect = ((yi > y) != (yj > y))
+              && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
+          if (intersect) inside = !inside;
+        }
+        return inside;
+      }
+	
+	
+var w = 1280,
+    h = 800;
+
+var nodes = d3.range(70).map(function() { return {radius: Math.random() * 2 + 4}; }),
+    color = d3.scale.category10();
+
+var force = d3.layout.force()
+    .gravity(0.0)
+    .charge(function(d, i) { return i ? 0 : -1000; })
+    .nodes(nodes)
+    .size([w, h]);
+
+
+var root = nodes[0];
+root.radius = 0;
+root.fixed = true;
+
+force.start();
+
+var svg = d3.select("#body").append("svg:svg")
+    .attr("width", w)
+    .attr("height", h);
+
+svg.selectAll("circle")
+    .data(nodes.slice(1))
+  .enter().append("svg:circle")
+    .attr("r", function(d) { return d.radius - 2; })
+    .style("fill", function(d, i) { return color(i % 3); });
+
+function getCentroid(points) {
+	var xmean=0, ymean = 0;
+	points.forEach(function(p) {
+		xmean += p.x;
+		ymean += p.y;
+	});
+	return {"x":xmean / points.length, "y":ymean / points.length};
+}
+
+function getClosest(point, points) {
+	var shortestDistance = 10000000;
+	var shortI = {"x":0, "y":0};
+	points.forEach(function(p) {
+		var distance = Math.sqrt((point.x-p.x)*(point.x-p.x) + (point.y-p.y)*(point.y-p.y));
+		if (distance < shortestDistance) {
+			shortI = p;
+			shortestDistance = distance;
+		}
+	});
+	//console.log(shortI);
+	return shortI;
+}	
+
+function getClosestTwo(point, points) {
+	var mins = [{"x":0, "y":0, "distance":100000}, {"x":0, "y":0, "distance":10000}];
+	
+	points.forEach(function(p) {
+		var distance = Math.sqrt((point.x-p.x)*(point.x-p.x) + (point.y-p.y)*(point.y-p.y));
+		var longest = d3.max(mins, function(k) {return k.distance});
+		if (distance < longest) {
+			if (mins[0].distance > mins[1].distance) mins[0] = {"x":p.x, "y":p.y, "distance":distance};
+			else mins[1] = {"x":p.x, "y":p.y, "distance":distance};;
+		}
+	});
+	return mins;
+}
+	
+force.on("tick", function(e) {
+  var points = [{"x":122.186, "y":143.518}, 
+  {"x": 122.186, "y":151.478}, 
+  {"x":103.082, "y":169.388}, 
+  {"x": 39.004, "y":169.388}, 
+  {"x": 19.9, "y":151.478}, 
+  {"x": 19.9, "y":47.998}, 
+  {"x": 39.004, "y":30.088}, 
+  {"x": 103.082, "y":30.088}, 
+  {"x": 122.186, "y":47.998}, 
+  {"x": 122.186, "y":55.958}, 
+  {"x": 105.47, "y":55.958}, 
+  {"x": 105.47, "y":52.177}, 
+  {"x": 95.719, "y":44.018}, 
+  {"x": 46.367, "y":44.018}, 
+  {"x": 36.616, "y":52.177}, 
+  {"x": 36.616, "y":147.229}, 
+  {"x": 46.367, "y":155.458}, 
+  {"x": 95.719, "y":155.458}, 
+  {"x": 105.47, "y":147.299}, 
+  {"x": 105.47, "y":143.518}];
+  
+  nodes.forEach(function (o) {
+	//console.log(o);
+	//apply a force only if the point is inside of the polygon
+	//console.log(pointInPolygon(o, points));
+	o.color = "#FF0000";
+	if (!pointInPolygon(o, points)) {
+		o.color = "#000000";
+		
+		m = getClosestTwo(o, points);
+		
+		m.forEach(function(k) {	
+			var distance = Math.sqrt((k.x-o.x)*(k.x-o.x) + (k.y-o.y)*(k.y-o.y));
+			var force = -1.5 / (distance);
+			o.y += (o.y - k.y)* force;
+			o.x += (o.x - k.x)* force;
+		});
+	}
+  });
+
+  //divide nodes into smaller zones to make faster rendering
+  var q = d3.geom.quadtree(nodes),
+      i = 0,
+      n = nodes.length;
+	
+	
+	//interact each node with the mouse
+  while (++i < n) {
+    q.visit(collide(nodes[i]));
+  }
+  
+  
+  //update the position
+  svg.selectAll("circle")
+      .attr("cx", function(d) { return d.x; })
+      .attr("cy", function(d) { return d.y; })
+	  .attr("style", function(d) {return "fill: "+d.color+";"});
+});
+
+svg.on("mousemove", function() {
+  var p1 = d3.svg.mouse(this);
+  root.px = p1[0];
+  root.py = p1[1];
+  force.resume();
+});
+
+//function that collides the nodes with the mouse
+function collide(node) {
+  var r = node.radius + 16,
+      nx1 = node.x - r,
+      nx2 = node.x + r,
+      ny1 = node.y - r,
+      ny2 = node.y + r;
+  return function(quad, x1, y1, x2, y2) {
+    if (quad.point && (quad.point !== node)) {
+      var x = node.x - quad.point.x,
+          y = node.y - quad.point.y,
+          l = Math.sqrt(x * x + y * y),
+          r = node.radius + quad.point.radius;
+      if (l < r) {
+        l = (l - r) / l * .5;
+        node.x -= x *= l;
+        node.y -= y *= l;
+        quad.point.x += x;
+        quad.point.y += y;
+      }
+    }
+    return x1 > nx2
+        || x2 < nx1
+        || y1 > ny2
+        || y2 < ny1;
+  };
+}
+
+    </script>
+  </body>
+</html>
