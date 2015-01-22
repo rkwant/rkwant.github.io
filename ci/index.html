@@ -102,7 +102,7 @@ stroke:#000;
 
 		
 		  x.domain(data.map(function(d) { return d.sample; }));
-		  y.domain([0, d3.max(data, function(d) { return d.mean+d.ci; })]);
+		  y.domain([0, d3.max([d3.max(points, function(d) {return d.y}), d3.max(data, function(d) { return d.mean+d.ci; })])]);
 
 		  svg.append("g")
 			  .attr("class", "x axis")
@@ -162,7 +162,7 @@ stroke:#000;
 				.enter().append("circle")
 				  .attr("class", "dot")
 				  .attr("r", 3.5)
-				  .attr("cx", function(k) {return x(k.x)+x.rangeBand()/2.0})
+				  .attr("cx", function(k) {return x(k.x)+x.rangeBand()/2.0 + ((k.count-0.5)*x.rangeBand()/3.0)})
 				  .attr("cy", function(k) { return y(k.y); })
 				  .style("fill", '#000000');	
 
@@ -175,10 +175,10 @@ stroke:#000;
 		points=[];
 		for (var i = 0; i < lines.length; i++) {
 			numbers = lines[i].split(',').map(function(item) {return parseFloat(item)});
-			var theText = 'Mean: '+getMean(numbers)+', Std: '+getSTD(numbers)+', 95% CI:'+getConfidence(numbers.length-1, 0.95)*getSTD(numbers) / Math.sqrt(numbers.length-1);
+			var theText = 'Mean: '+getMean(numbers)+', Std: '+getSTD(numbers)+', 95% CI:'+getConfidence(numbers.length-1, 0.95)*getSTD(numbers) / Math.sqrt(numbers.length);
 			$('#results').html($('#results').html()+theText+'<br>\n');
-			data.push({"sample":i+1, "mean":getMean(numbers), "std":getSTD(numbers), "ci":getConfidence(numbers.length-1, 0.95)*getSTD(numbers) / Math.sqrt(numbers.length-1)});
-			numbers.forEach(function(d,i){points.push({"x":i+1, "y":d})});
+			data.push({"sample":i+1, "mean":getMean(numbers), "std":getSTD(numbers), "ci":getConfidence(numbers.length-1, 0.95)*getSTD(numbers) / Math.sqrt(numbers.length)});
+			numbers.forEach(function(d,j){points.push({"x":i+1, "y":d, "count":j/numbers.length})});
 		}
 	}
 	
@@ -197,7 +197,7 @@ stroke:#000;
 		for (var i=0; i<arr.length; i++) {
 			runningTotal += (mean - arr[i])*(mean - arr[i]);
 		}
-		return Math.sqrt(runningTotal / arr.length);
+		return Math.sqrt(runningTotal / (arr.length-1));
 	}
 	
 	function getConfidence(df, prob) {
