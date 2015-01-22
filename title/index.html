@@ -48,10 +48,10 @@ circle {
       }
 	
 	
-var w = 1280,
-    h = 800;
+var w = 1170,
+    h = 500;
 
-var nodes = d3.range(200).map(function() { return {radius: Math.random() * 2 + 4}; }),
+var nodes = d3.range(350).map(function() { return {radius: Math.random() * 8 + 4}; }),
     color = d3.scale.category10();
 
 var force = d3.layout.force()
@@ -147,8 +147,13 @@ function vAdd(a, b) {
 function vSub(a, b) {
 	return {"x":a.x-b.x, "y":a.y-b.y};
 }
-	
-force.on("tick", function(e) {
+
+function letterMult(letter, scale, x, y) {
+	return letter.map(function(d) {		
+		return {"x":d.x*scale+x, "y":d.y*scale+y};
+	});
+}
+
   var pointsC = [{"x":122.186, "y":143.518}, 
   {"x": 122.186, "y":151.478}, 
   {"x":103.082, "y":169.388}, 
@@ -193,16 +198,24 @@ force.on("tick", function(e) {
   {"x":196.157, "y":111.678}, 
   {"x":196.157, "y":97.748}];
   
+  pointsC = letterMult(pointsC, 2.5, 250, 0);
+  pointsG = letterMult(pointsG, 2.5, 250, 0);
+  
   var letters = [pointsC, pointsG];
+	
+force.on("tick", function(e) {
+
   
   nodes.forEach(function (o) {
-	points = getDist(vSub(getCentroid(pointsC), o)) < getDist(vSub(getCentroid(pointsG), o))? pointsC:pointsG;
+	
+	points = Math.abs(o.x - d3.max(pointsC, function(d) {return d.x})) < Math.abs(o.x - d3.min(pointsG, function(d) {return d.x})) ? pointsC:pointsG;
+	//points = getDist(vSub(getCentroid(pointsC), o)) < getDist(vSub(getCentroid(pointsG), o))? pointsC:pointsG;
 	
 		o.color = "#FF0000";
 		if (!pointInPolygon(o, points)) {
 			o.color = "#000000";
 			var norm = getClosestEdge(o, points);
-			if (!norm.between) o.color="#00ff00";
+			//if (!norm.between) o.color="#00ff00";
 			var force = 1.0 / getDist(norm);
 			o.y += norm.y * force;
 			o.x += norm.x * force;
