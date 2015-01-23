@@ -251,6 +251,8 @@ force.on("tick", function(e) {
 			var norm = getClosestEdge(o, points);
 			//if (!norm.between) o.color="#00ff00";
 			var force = 1.0 / getDist(norm);
+			o.color = d3.rgb(d3.max([255-getDist(norm)*50, 0]),0,0);
+			//console.log(getDist(norm));
 			o.y += norm.y * force;
 			o.x += norm.x * force;
 		}
