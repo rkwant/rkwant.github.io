@@ -79,18 +79,18 @@ stroke:#000;
 			width = 960 - margin.left - margin.right,
 			height = 500 - margin.top - margin.bottom;
 
-		var x = d3.scale.ordinal()
+		var xScale = d3.scale.ordinal()
 			.rangeRoundBands([0, width], .1);
 
-		var y = d3.scale.linear()
+		var yScale = d3.scale.linear()
 			.range([height, 0]);
 
 		var xAxis = d3.svg.axis()
-			.scale(x)
+			.scale(xScale)
 			.orient("bottom");
 
 		var yAxis = d3.svg.axis()
-			.scale(y)
+			.scale(yScale)
 			.orient("left")
 			.ticks(10);
 
@@ -101,8 +101,8 @@ stroke:#000;
 			.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
 		
-		  x.domain(data.map(function(d) { return d.sample; }));
-		  y.domain([0, d3.max([d3.max(points, function(d) {return d.y}), d3.max(data, function(d) { return d.mean+d.ci; })])]);
+		  xScale.domain(data.map(function(d) { return d.sample; }));
+		  yScale.domain([0, d3.max([d3.max(points, function(d) {return d.y}), d3.max(data, function(d) { return d.mean+d.ci; })])]);
 
 		  svg.append("g")
 			  .attr("class", "x axis")
@@ -123,48 +123,84 @@ stroke:#000;
 			  .data(data)
 			.enter().append("rect")
 			  .attr("class", "bar")
-			  .attr("x", function(d) { return x(d.sample); })
-			  .attr("width", x.rangeBand())
-			  .attr("y", function(d) { return y(d.mean); })
-			  .attr("height", function(d) { return height - y(d.mean); });
+			  .attr("x", function(d) { return xScale(d.sample); })
+			  .attr("width", xScale.rangeBand())
+			  .attr("y", function(d) { return yScale(d.mean); })
+			  .attr("height", function(d) { return height - yScale(d.mean); });
 		
-		barbwidth = x.rangeBand() / 20.0
+		var line = d3.svg.line()
+			.x(function(d) {return d.x;})
+			.y(function(d) {return yScale(d.y);});
+		
+		
+		//plot the error bars
+		barbwidth = 5;
 		data.forEach(function(d, i) {
+			
+			var yrange = d3.range(-2.0*d.ci, 2.0*d.ci, d.ci / 100.0);
+			var calcData = yrange.map(function(b) {
+				return {"x":((compute(b*Math.sqrt(d.n)/d.std, d.n-1)-compute((b-0.01)*Math.sqrt(d.n)/d.std, d.n-1))/0.01), 
+				"y": d.mean+b}
+			});
+			
+			var distMax = d3.max(calcData, function(k) {return k.x});
+			
+			var rightData = calcData.map(function(k) {
+				return {"x":xScale(d.sample)+xScale.rangeBand()/2.0+k.x/distMax*xScale.rangeBand()/2.0, "y":k.y}
+			});
+			var leftData = calcData.map(function(k) {
+				return {"x":xScale(d.sample)+xScale.rangeBand()/2.0-k.x/distMax*xScale.rangeBand()/2.0, "y":k.y}
+			});
+			
+			svg.append("path")
+			   .attr("class", "line")
+			   .attr("d", line(rightData))
+			   //.attr("stroke", "steelblue")
+			   .attr("fill", "red")
+			   .attr("opacity", 0.5);
+			svg.append("path")
+			   .attr("class", "line")
+			   .attr("d", line(leftData))
+			   //.attr("stroke", "#000000")
+			   .attr("fill", "red")
+			   .attr("opacity", 0.5);
+			
 			console.log(d);
 			svg.append("svg:line")
 				.attr("class", "errorbar")
-				.attr("x1", x(d.sample)+x.rangeBand() / 2.0)
-				.attr("y1", y(d.mean - d.ci))
-				.attr("x2", x(d.sample)+x.rangeBand() / 2.0)
-				.attr("y2", y(d.mean + d.ci))
-				
-				
-			svg.append("svg:line")
-				.attr("class", "errorbar")
-				.attr("x1", x(d.sample)+x.rangeBand() / 2.0 -barbwidth)
-				.attr("y1", y(d.mean - d.ci))
-				.attr("x2", x(d.sample)+x.rangeBand() / 2.0 +barbwidth)
-				.attr("y2", y(d.mean - d.ci))
-				
+				.attr("x1", xScale(d.sample)+xScale.rangeBand() / 2.0)
+				.attr("y1", yScale(d.mean - d.ci))
+				.attr("x2", xScale(d.sample)+xScale.rangeBand() / 2.0)
+				.attr("y2", yScale(d.mean + d.ci))
 				
 			svg.append("svg:line")
 				.attr("class", "errorbar")
-				.attr("x1", x(d.sample)+x.rangeBand() / 2.0 - barbwidth)
-				.attr("y1", y(d.mean + d.ci))
-				.attr("x2", x(d.sample)+x.rangeBand() / 2.0 + barbwidth)
-				.attr("y2", y(d.mean + d.ci))
+				.attr("x1", xScale(d.sample)+xScale.rangeBand() / 2.0 -barbwidth)
+				.attr("y1", yScale(d.mean - d.ci))
+				.attr("x2", xScale(d.sample)+xScale.rangeBand() / 2.0 +barbwidth)
+				.attr("y2", yScale(d.mean - d.ci))
 				
-			
-				
+			svg.append("svg:line")
+				.attr("class", "errorbar")
+				.attr("x1", xScale(d.sample)+xScale.rangeBand() / 2.0 - barbwidth)
+				.attr("y1", yScale(d.mean + d.ci))
+				.attr("x2", xScale(d.sample)+xScale.rangeBand() / 2.0 + barbwidth)
+				.attr("y2", yScale(d.mean + d.ci))
 		});
+		
+		//plot the individual points
+		/*
 		svg.selectAll(".dot")
 				.data(points)
 				.enter().append("circle")
 				  .attr("class", "dot")
 				  .attr("r", 3.5)
-				  .attr("cx", function(k) {return x(k.x)+x.rangeBand()/2.0 + ((k.count-0.5)*x.rangeBand()/3.0)})
-				  .attr("cy", function(k) { return y(k.y); })
-				  .style("fill", '#000000');	
+				  .attr("cx", function(k) {return xScale(k.x)+xScale.rangeBand()/2.0 + ((k.count-0.5)*xScale.rangeBand()/3.0)})
+				  .attr("cy", function(k) { return yScale(k.y); })
+				  .style("fill", '#000000');
+		*/
+		
+
 
 	}
 
@@ -177,7 +213,8 @@ stroke:#000;
 			numbers = lines[i].split(',').map(function(item) {return parseFloat(item)});
 			var theText = 'Mean: '+getMean(numbers)+', Std: '+getSTD(numbers)+', 95% CI:'+getConfidence(numbers.length-1, 0.95)*getSTD(numbers) / Math.sqrt(numbers.length);
 			$('#results').html($('#results').html()+theText+'<br>\n');
-			data.push({"sample":i+1, "mean":getMean(numbers), "std":getSTD(numbers), "ci":getConfidence(numbers.length-1, 0.95)*getSTD(numbers) / Math.sqrt(numbers.length)});
+			
+			data.push({"sample":i+1, "mean":getMean(numbers), "std":getSTD(numbers), "ci":getConfidence(numbers.length-1, 0.95)*getSTD(numbers) / Math.sqrt(numbers.length), "n":numbers.length});
 			numbers.forEach(function(d,j){points.push({"x":i+1, "y":d, "count":j/numbers.length})});
 		}
 	}
