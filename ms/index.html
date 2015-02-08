@@ -873,7 +873,7 @@
 							console.log(formIDs[i]);
 							console.log(thevalue);
 							if (formIDs[i] != 'plotradio1' && formIDs[i] != 'plotradio2')	$('#'+formIDs[i]).val(getCookie(formIDs[i]));
-							else if (thevalue) $('#'+formIDs[i]).click();
+							else if (thevalue == 'true') $('#'+formIDs[i]).click();
 						}
 					}
 				}
