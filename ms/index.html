@@ -1025,6 +1025,16 @@
 					}
 					
 				});
+				
+				
+				$('#filesdiv').keypress(function(e) {
+					e.stopPropagation();
+				});
+				
+				$('input').keypress(function(e) {
+					e.stopPropagation();
+				});
+				
 			});
 		</script>
 	</head>
