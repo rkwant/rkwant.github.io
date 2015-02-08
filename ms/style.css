@@ -52,6 +52,10 @@ body, html {
 	font-size:20pt;
 }
 
+.title a {
+	text-decoration: none;
+}
+
 #rdio {
 	margin: 0px 0px 30px 10px;
 	font-size:100%;
