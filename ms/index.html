@@ -865,7 +865,10 @@
 					////console.log('loading cookies');
 					for (var i = 0; i<formIDs.length; i++) {
 						////console.log(getCookie(formIDs[i]));
-						if (thevalue = getCookie(formIDs[i])) $('#'+formIDs[i]).val(getCookie(formIDs[i]));
+						if (thevalue = getCookie(formIDs[i])) {
+							if (formIDs != 'plotradio1' && formIDs != 'plotradio2')	$('#'+formIDs[i]).val(getCookie(formIDs[i]));
+							else $('#'+formIDs[i]).property('checked', theValue);
+						}
 					}
 				}
 				
