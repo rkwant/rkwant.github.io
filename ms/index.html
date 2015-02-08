@@ -848,7 +848,7 @@
 				function setCookies() {
 					////console.log("I got called");
 					for (var i = 0; i<formIDs.length; i++) {
-						if (formIDs[i] != 'plotradio1' && formIDs[i] != 'plotradio2') var cookietext = formIDs[i] + "=" + escape(getv('#'+formIDs[i])) + "; expires=" + expiry.toGMTString();
+						if (['plotradio1', 'plotradio2', 'autoscale', 'showtitles', 'showyaxis'].indexOf(formIDs[i]) < 0) var cookietext = formIDs[i] + "=" + escape(getv('#'+formIDs[i])) + "; expires=" + expiry.toGMTString();
 						else {
 							var cookietext = formIDs[i] + "=" + escape(d3.select('#'+formIDs[i]).property('checked')) + "; expires=" + expiry.toGMTString();
 							console.log(d3.select('#'+formIDs[i]).property('checked'));
