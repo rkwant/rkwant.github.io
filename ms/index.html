@@ -849,7 +849,7 @@
 					////console.log("I got called");
 					for (var i = 0; i<formIDs.length; i++) {
 						if (formIDs[i] == 'plotradio2' || formIDs[i] == 'plotradio2') cookietext = formIDs[i] + "=" + escape(d3.select('#'+formIDs[i]).property('checked')) + "; expires=" + expiry.toGMTString()
-						var cookietext = formIDs[i] + "=" + escape(getv('#'+formIDs[i])) + "; expires=" + expiry.toGMTString();
+						else var cookietext = formIDs[i] + "=" + escape(getv('#'+formIDs[i])) + "; expires=" + expiry.toGMTString();
 						document.cookie=cookietext;
 						////console.log(cookietext);
 					}
