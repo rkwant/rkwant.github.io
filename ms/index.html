@@ -841,15 +841,16 @@
 				}
 				
 				var formIDs = ['showtitles', 'graphwidth', 'graphheight', 'autoscale', 'showyaxis', 'lookahead', 
-				'cutoff', 'peaksf', 'intsf', 'nticks', 'linecolor', 'fname', 'plotradio2', 'plotradio1'];
+				'cutoff', 'peaksf', 'intsf', 'nticks', 'linecolor', 'fname', 'plotradio2'];
 				var today = new Date();
 				var expiry = new Date(today.getTime() + 30 * 24 * 3600 * 1000); // plus 30 days
 				
 				function setCookies() {
 					////console.log("I got called");
 					for (var i = 0; i<formIDs.length; i++) {
-						if (formIDs[i] == 'plotradio2' || formIDs[i] == 'plotradio2') cookietext = formIDs[i] + "=" + escape(d3.select('#'+formIDs[i]).property('checked')) + "; expires=" + expiry.toGMTString()
-						else var cookietext = formIDs[i] + "=" + escape(getv('#'+formIDs[i])) + "; expires=" + expiry.toGMTString();
+
+						var cookietext = formIDs[i] + "=" + escape(getv('#'+formIDs[i])) + "; expires=" + expiry.toGMTString();
+
 						document.cookie=cookietext;
 						////console.log(cookietext);
 					}
@@ -865,11 +866,7 @@
 					////console.log('loading cookies');
 					for (var i = 0; i<formIDs.length; i++) {
 						////console.log(getCookie(formIDs[i]));
-						if (thevalue = getCookie(formIDs[i])) {
-							if (formIDs[i] == 'plotradio2' || formIDs[i] == 'plotradio1') d3.select('#'+formIDs[i]).property('checked', theValue);
-							else $('#'+formIDs[i]).val(theValue);
-						
-						}
+						if (thevalue = getCookie(formIDs[i])) $('#'+formIDs[i]).val(getCookie(formIDs[i]));
 					}
 				}
 				
