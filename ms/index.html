@@ -872,7 +872,8 @@
 						if (thevalue = getCookie(formIDs[i])) {
 							console.log(formIDs[i]);
 							console.log(thevalue);
-							if (formIDs[i] != 'plotradio1' && formIDs[i] != 'plotradio2')	$('#'+formIDs[i]).val(getCookie(formIDs[i]));
+							if (['plotradio1', 'plotradio2', 'autoscale', 'showtitles', 'showyaxis'].indexOf(formIDs[i]) < 0)	$('#'+formIDs[i]).val(getCookie(formIDs[i]));
+							else if (['plotradio1', 'plotradio2'].indexOf(formIDs[i])<0) d3.select('#'+formIDs[i]).property('checked', thevalue);
 							else if (thevalue == 'true') $('#'+formIDs[i]).click();
 						}
 					}
