@@ -851,9 +851,9 @@
 						if (['plotradio1', 'plotradio2', 'autoscale', 'showtitles', 'showyaxis'].indexOf(formIDs[i]) < 0) var cookietext = formIDs[i] + "=" + escape(getv('#'+formIDs[i])) + "; expires=" + expiry.toGMTString();
 						else {
 							var cookietext = formIDs[i] + "=" + escape(d3.select('#'+formIDs[i]).property('checked')) + "; expires=" + expiry.toGMTString();
-							console.log(d3.select('#'+formIDs[i]).property('checked'));
+							
 						}
-						console.log(cookietext);
+						
 						document.cookie=cookietext;
 						////console.log(cookietext);
 					}
@@ -870,8 +870,7 @@
 					for (var i = 0; i<formIDs.length; i++) {
 						////console.log(getCookie(formIDs[i]));
 						if (thevalue = getCookie(formIDs[i])) {
-							console.log(formIDs[i]);
-							console.log(thevalue);
+							
 							if (['plotradio1', 'plotradio2', 'autoscale', 'showtitles', 'showyaxis'].indexOf(formIDs[i]) < 0)	$('#'+formIDs[i]).val(getCookie(formIDs[i]));
 							else if (['plotradio1', 'plotradio2'].indexOf(formIDs[i])<0) d3.select('#'+formIDs[i]).property('checked', thevalue=='true');
 							else if (thevalue == 'true') $('#'+formIDs[i]).click();
