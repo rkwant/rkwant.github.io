@@ -37,16 +37,21 @@
 						reader.onload = (function(theFile) {
 								return function(e) {
 									thedata = e.target.result;
-                                    alert(thedata);
+                                    handleBinaryData(thedata);
 								};
 								})(f);
-						reader.readAsBinaryString(f);
+						reader.readAsArrayBuffer(f);
 					
 					}
 				}
             
-                function handleBinaryData(binaryString) {
-                    
+                function handleBinaryData(bd) {
+                    console.log(bd);
+					var b = new DataView(bd);
+					console.log(b.getInt32(282)/60000.0);
+					console.log(b.getInt32(286)/60000.0);
+					
+					console.log(b.getInt32(4213));
                 }
             
             
@@ -65,7 +70,7 @@
 		<div id='leftbar2'>
 		</div>
 		<div id="leftbar">
-			<p class="title"><a href="/..">Chartograph</a>MS</p>
+			<p class="title"><a href="/..">Chartograph</a>LC</p>
 			
 			  <div id="rdio">
 				<input type="radio" id="radio1" name="radio" checked="checked"><label for="radio1">Zoom</label>
