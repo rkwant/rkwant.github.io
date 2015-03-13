@@ -101,7 +101,7 @@
 				//You should have received a copy of the GNU General Public License
 				//along with this program.  If not, see <http://www.gnu.org/licenses/>.
                 function handleBinaryData(bd) {
-                    console.log(bd);
+                    
 					var b = new DataView(bd);
 					var start_time = b.getInt32(282)/60000.0;
 					var stop_time = b.getInt32(286)/60000.0;
@@ -112,6 +112,7 @@
                     var done=false;
                     var position = 6144;
                     var out = [];
+					var whilecount=0;
                     
                     while(!done) {
                         x = b.getInt8(position);
@@ -119,27 +120,31 @@
                         n = b.getInt8(position);
                         position+=1;
                         
-                        console.log('x, n: '+x+' '+n);
-                        
                         if (x==0 && n==0) done=true;
                         else {
                             for (var i=0; i<n; i++) {
-                                p = b.getInt16(position);
-                                console.log('--p: '+p);
+                                
+								p = b.getInt16(position);
+                                
                                 position+=2;
-                                if (n==-32768) {
+								
+                                
+								if (p==-32768) {
                                     p = b.getInt32(position);
                                     position+=4;
-                                    out.push(p*da);
+									
+                                    out.push(da*p);
                                 }
                                 else if(out.length == 0) {
                                     out.push(da*p);
                                 }
                                 else {
+									
                                     out.push(out[out.length-1] + da*p);
                                 }
                                 
                             }
+							
                         }
                     }
                     out2=[];
@@ -147,6 +152,7 @@
                     for (var i = 0; i<out.length; i++) {
                         out2.push([start_time + i*((stop_time-start_time)/(ol-1)), out[i]]);
                     }
+					
                     return out2;
                 }
 				
