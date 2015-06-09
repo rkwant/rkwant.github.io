@@ -380,7 +380,7 @@
 					}
 					
 					this.checkPeakMatch = function() {
-						return (getv('#lookahead') == this.lookahead && getv('#cutoff') == this.cutoff && getv('#peaksf') == this.peaksf && this.showpeaks == d3.select('#showpeaks').property('checked'));
+                        return (getv('#lookahead') == this.lookahead && getv('#cutoff') == this.cutoff && getv('#peaksf') == this.peaksf && this.showpeaks == d3.select('#showpeaks').property('checked'));
 					}
 					
 					this.setPeakParams = function() {
@@ -449,9 +449,13 @@
 					}
 					
 					this.repeak = function() {
-						if (this.checkPeakMatch()) return;
+						
+                        if (this.checkPeakMatch()) {
+                            return;
+                        }
 						this.chartContainer.selectAll('.label').remove();
 						this.findAndDisplayPeaks();
+                        this.setPeakParams();
 					}
 					
 					this.reint = function() {
