@@ -253,9 +253,13 @@
 				
 				//object that represents each data file that we've loaded
 				function dataFile(options) {
-					this.data = options.data;
+					
+                    //turn these into lists for multiple plotting
+                    this.data = options.data;
 					this.fname = options.fname;
-					this.lookahead = 0;
+					
+                    
+                    this.lookahead = 0;
 					this.cutoff = 0;
 					this.peaksf = 0;
 					this.peaks = [];
@@ -690,6 +694,14 @@
 						this.applyCSS();
 					}
 				}
+                
+                //function or new object to show multiple lines
+                function multipleDataFile(options) {
+                    //get everything from the datafile
+                    dataFile.call(this, options);
+                    
+                }
+                
 				
 				function getv(selector) {
 					return d3.select(selector).property('value');
