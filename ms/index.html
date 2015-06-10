@@ -232,8 +232,8 @@
 											.attr('display', 'display');
 						d3.selectAll('.x .axis .tick text').attr('dy', '0')
 													.attr('transform', 'translate(0, 10)')
-													.attr("font-size", "12px")
-													.attr("font-family", "sans-serif");
+													.attr("font", "12px Arial");
+													//.attr("font-family", "sans-serif");
 						
 						d3.selectAll('path.line').attr('stroke-miterlimit', '1')
 												.attr('stroke-linejoin', 'bevel');
@@ -319,8 +319,8 @@
 												.attr("x", this.width/2)
 												.attr("y", 0)
 												.text($('#fspa'+fileordering[this.id]).html())
-												.attr("font-family", "sans-serif")
-												.attr("font-size", "14px")
+												//.attr("font-family", "sans-serif")
+												.attr("font", "14px Arial")
 												.attr("text-align", "center").attr("text-anchor", "middle")
 												.attr("id", "title"+this.id);
 					}
@@ -438,8 +438,8 @@
 							   .attr("y", function(d) {
 									return yS1(d[1]);
 							   })
-							   .attr("font-family", "sans-serif")
-							   .attr("font-size", "11px")
+							   //.attr("font-family", "sans-serif")
+							   .attr("font", "11px Arial")
 							   .attr("class", "label")
 							   .call(drag);
 							   
@@ -568,8 +568,8 @@
 												.attr("x", this.xScale((start+stop)/2.0))
 												.attr("y", this.yScale(this.yviewmax+(this.yviewmax-this.yviewmin)*0.12))
 												.text(intvalue.toFixed(parseInt(getv('#intsf'))))
-												.attr("font-family", "sans-serif")
-												.attr("font-size", "13px")
+												//.attr("font-family", "sans-serif")
+												.attr("font", "13px Arial")
 												.attr("text-align", "center").attr("text-anchor", "middle");
 						}
 					}
