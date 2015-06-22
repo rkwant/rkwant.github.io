@@ -35,6 +35,7 @@
 				var uploaddone = 1;
 				var historicalxmin = 0;
 				var historicalxmax = 0;
+                var sameaxes = false;
 				
 				var xviewmin = 0;
 				var xviewmax = 0;
@@ -59,9 +60,12 @@
 				function handleFileSelect(evt) {
 					uploaddone = 0;
 					clearsvg();
-					filedata = new Array();
-					filenames = new Array();
-					fileordering = new Array();
+                    sameaxes = d3.select('#showtitles').property('checked');
+                    
+                    filedata = new Array();
+                    filenames = new Array();
+                    fileordering = new Array();                    
+                    
 					var files = evt.target.files;
 										
 					for (var i=0, f; f=files[i]; i++) {
@@ -73,9 +77,14 @@
 												
 						reader.onload = (function(theFile) {
 								return function(e) {
-									thedata = handleBinaryData(e.target.result);
+                                    //case where all files get there own axes
+                                    thedata = handleBinaryData(e.target.result);
 									////console.log(filenames.indexOf(theFile.name));
 									filedata[filenames.indexOf(theFile.name)] = new dataFile({data: thedata,fname: theFile.name});
+                                    
+                                    //case where all lines are on the same axes
+                                    
+                                    
 									checkDone();
 								};
 								})(f);
@@ -244,7 +253,17 @@
 					}
 					if (!anynulls && uploaddone == 0) 
 					{
-						uploaddone=1;
+						//if we want to put everything on one axes, do it now
+                        if (sameaxes) {
+                            var dlist = new Array(); 
+                            var flist = new Array();
+                            
+                            for (var i = 0; i<filedata.length; i++){
+                                dlist.push();
+                                
+                            }
+                        }
+                        uploaddone=1;
 						listfiles();
 						plotdata();
 						$('#resetzoom').click();
@@ -1143,6 +1162,9 @@
 					</div>
 					<label for="showtitles" >Show titles:</label>
 					<input type="checkbox" id="showtitles" checked="checked"></input>
+                    <br>
+                    <label for="showtitles" >Same axes:</label>
+                    <input type="checkbox" id="sameaxes" checked="checked"></input>
 				</div>
 			</div>
 			
