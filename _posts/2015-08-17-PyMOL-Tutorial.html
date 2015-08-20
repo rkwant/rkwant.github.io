@@ -69,10 +69,10 @@ We can accomplish this same sequence of manipulations by executing the following
 </p>
     
 <p><code>
-PyMOL> hide everything<br>
-PyMOL> show cartoon<br>
-PyMOL> show sticks<br>
-PyMOL> util.cbab<br>
+hide everything<br>
+show cartoon<br>
+show sticks<br>
+util.cbab<br>
 </code></p>
 
 The <code>util.cbab</code> command is a function whose name stands for "color by atom blue."
@@ -107,31 +107,44 @@ To run the commands, go to File &rarr; Run . . . , and then select the file that
 <h3>Selection logic</h3>
 
 <p>
-To get help, type <code>help select</code>, and then hit the escape key.
-This will show the command window in the main window, and it will show the documentation for the <code>select</code> command.
+    One of the most powerful features of PyMOL is the ability to make selections based on different criteria.
+    To get started, let's read the documentation for the select command.
+    Type <code>help select</code>, and then hit the escape key.
+    This will show the command window in the main window, and it will show the documentation for the <code>select</code> command.
+    The general syntax for the select command is <code>select selection_name, selection_criteria</code>, where <code>selection_name</code> is the name of the selection that we're creating, and <code>selection_criteria</code> defines how the selection is made.
 </p>
     
 <p>
-Let's start by selecting all of the lysines
+    Let's start by selecting all of the lysines
 </p>
 
+<p>
 <code>
 sel lysines, resn lys
 </code>
+</p>
 
 <p>
-This means that we want to make a new selection called <code>lysines</code>, we want to select by the residue name (<code>resn</code>), and we want residues with the name lysine (<code>lys</code>).  We can make these lysines blue (lsysines &rarr; C &rarr; Blues &rarr; Blue).</p>
+This means that we want to make a new selection called <code>lysines</code> by selecting all residues with a name (<code>resn</code>) that is lysine (<code>lys</code>).  We can make these lysines blue (lsysines &rarr; C &rarr; Blues &rarr; Blue).</p>
+
+<p>
+<code>
+color blue, lysines
+</code>
+</p>
 
 <p>
 Let's also select the prolines as well</p>
 
-<code>
+<p></p><code>
 sel prolines, resn pro
-</code>
+</code></p>
 
 <p>
 Before we continue, let's make the protein gray (<code>color gray</code>).
-Now, let's make a compound selection by selecting aspartic and glutamic acids.  </p>
+Now, let's make a compound selection by selecting aspartic and glutamic acids.
+The syntax for making a selection that is either aspartic acid or glutamic acid is <code>asp+glu</code>.
+</p>
 
 <code>
 sel acids, resn asp+glu
@@ -157,18 +170,24 @@ sel oxygens, name o
 </code>
 
 <p>
-Let's also try to select a ligand of a protein.
-    </p>
+Before we move on, let's reinitialize PyMOL and load a new structure.
+</p>
 
-<code>
+<p><code>
 rein<br>
 fetch 1nqh<br>
 hide everything<br>
 show cartoon<br>
 color slate<br>
-</code>
+</code></p>
 
-<p>Now, let's show the sequence (Display &rarr; Sequence).  If you notice, the first six amino acids are missing.  It's likely that they were deleted because they had low resolution.  Now, let's select and show spheres for each calcium
+<p>You should have the following:</p>
+
+<p><img src="{{site.url}}assets/pymol_figures/1nhq.png"></p>
+
+<p>Now, let's show the sequence (Display &rarr; Sequence).  If you notice, the first six amino acids are missing.  It's likely that they were deleted because they had low resolution.  
+    Let's also try to select a ligand of a protein.  
+    Now, let's select and show spheres for each calcium
 </p>
 
 <code>
