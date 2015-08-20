@@ -136,7 +136,7 @@ color blue, lysines
 <p>
 Let's also select the prolines as well</p>
 
-<p></p><code>
+<p><code>
 sel prolines, resn pro
 </code></p>
 
@@ -146,21 +146,21 @@ Now, let's make a compound selection by selecting aspartic and glutamic acids.
 The syntax for making a selection that is either aspartic acid or glutamic acid is <code>asp+glu</code>.
 </p>
 
-<code>
+<p><code>
 sel acids, resn asp+glu
-</code>
+</code></p>
 
 <p>We'll also select all of the bases</p>
 
-<code>
+<p><code>
 sel acids, resn arg+lys+his
-</code>
+</code></p>
 
 <p>We can select by attributes other than the type of residue.  For example, we can select residues by their indices:</p>
 
-<code>
+<p><code>
 sel Q31, resi 31<br>
-</code>
+    </code></p>
 
 <p>Here <code>resi</code> refers to residue index.  Another useful selection type is <code>name</code>, which will select by the atom name of each element.  
 </p>
@@ -185,25 +185,39 @@ color slate<br>
 
 <p><img src="{{site.url}}assets/pymol_figures/1nhq.png"></p>
 
-<p>Now, let's show the sequence (Display &rarr; Sequence).  If you notice, the first six amino acids are missing.  It's likely that they were deleted because they had low resolution.  
-    Let's also try to select a ligand of a protein.  
-    Now, let's select and show spheres for each calcium
+<p>Now, let's show the sequence (Display &rarr; Sequence).  If you notice, the first six amino acids are missing.  It's likely that they were deleted because they had low resolution.  Scroll all the way to the right in the sequence viewer.
+    There are also four residues with the name CA.  These are calcium ions that were resolved during the crystallography.  Let's show them:
 </p>
 
+<p>
 <code>
 select calciums, symbol ca<br>
 show spheres, calciums<br>
 color gray, calciums<br>
 </code>
+</p>
 
 <p>
-Now, scroll to the right in the sequence display window and click on <code>CNC</code>.  This is vitamin B12.  First, let's show it.    In the objects pane, (sele &rarr; S &rarr; sticks) color the ligand yellow (C &rarr; by element &rarr; yellow).  Let's highlight the cobalt ion
+You'll also notice that there's a residue with the name CNC.  This is vitamin B12.  Let's show it and change it's color to show it off.      In the objects pane, (sele &rarr; S &rarr; sticks) color the ligand yellow (C &rarr; by element &rarr; yellow).  Let's highlight the cobalt ion
     </p>
 
+
+<p>
+<code>
+select b12, resn CNC<br>
+show sticks, b12<br>
+util.cbay b12<br>
+</code>
+</p>
+
+<p>This ligand also has a cobalt ion at its center.  </p>
+
+<p>
 <code>
 select cobalt, symbol co<br>
 show spheres, cobalt
 </code>
+</p>
 
 
 <p>Once we've made a selection, we can modify that selection (A &rarr; modify &rarr; extend &rarr; ).  We can extend the selection through covalent bonds or through space. 
