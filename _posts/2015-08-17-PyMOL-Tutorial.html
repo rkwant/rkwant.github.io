@@ -1,0 +1,279 @@
+---
+layout: post
+title: PyMOL Tutorial
+highlighter: pygments
+extensions: [fenced_code_blocks]
+---
+
+<h1>Francis Group PyMOL Tutorial</h1>
+<h2>Matthew Francis and Richard Kwant</h2>
+
+<h3>Getting Files</h3>
+
+<p>The Protein Data Bank (PDB, found at  <a href="http://rcsb.org">rcsb.org</a> is a central source for most protein structures.  
+In fact, most publications require the upload of structures to the PDB as a condition of publication. 
+It is easiest to find structures on the PDB if you know their 4-character PDBID, but it is possible to search a large number of fields to find a desired protein structure.  
+These fields include protein name, organism, enzyme classification, structural domains, and resolution.  
+The PDB also contains a information about the sequence level details of the protein, and it can be a useful resource.  
+Since there are many structures available, pay careful attention to which structure you choose.
+It's best to select a high resolution structure with no mutations.
+</p>
+
+<p>To download a file, click the download files link in the top left, and then select the text option.  Alternatively, you can open Pymol and type 
+<code>fetch</code> followed by the PDBID to download the file and open it automatically.
+</p>
+
+
+
+<h3>Sessions, undo, and saving</h3>
+
+<p>
+In general, you should not expect to be able to undo your actions in PyMOL.  In some cases it is possible to undo actions, but the implementation is spotty and the results are inconsistent.  
+Instead, it's best to save the session, which saves both the structures that are open, the current selections, and all of the formatting.  
+To save a session, go to File &rarr; Save session as . . .   
+</p>
+    
+<h3>Pymol basics</h3>
+
+<p>
+Let's start by loading the structure of ubiquitin with PDBID 1UBQ.
+</p>
+
+<code>PyMOL> fetch 1ubq</code>
+
+
+<p>
+This command retrieves the \texttt{.pdb} file from the PDB server and opens it. 
+If you look in the object pane on the right side of the window, you'll see 1UBQ listed.  
+Each object loaded into Pymol has has five menus associated with it.  
+They're shown as A, S, H, L, and C and stand for Actions, Show, Hide, Label and Color.  
+These buttons provide access to many of the common actions that you'll want to perform in Pymol, but you can also accomplish every action by typing its command in the command line at the bottom of the screen.  
+</p>
+
+<p>
+Let's start by removing the water molecules from the structure
+</p>
+
+<code>PyMOL> remove resn hoh</code>
+
+
+<p>
+    This command removes every residue in the structure with the name HOH, a residue name specially reserved for waters.  
+You can also remove waters by showing the sequence (Display &rarr; Sequence), selecting the waters (shown as O) with your mouse, clicking the A next to sele in the object pane, and then clicking remove atoms.
+</p>
+
+<p>
+Let's start by Hiding everything (1UBQ &rarr; H &rarr; everything).
+Next, show the cartoon representation of the protein (1UBQ &rarr; S &rarr; Cartoon) and show the sticks (1UBQ &rarr; S &rarr; Sticks).  
+We can then color by atom type (1UBQ &rarr; C &rarr; by element).  
+Coloring by element is a great way to highlight certain sections of the protein without losing the element information.  
+We can accomplish this same sequence of manipulations by executing the following commands:
+</p>
+    
+<code>
+PyMOL> hide everything<br>
+PyMOL> show cartoon<br>
+PyMOL> show sticks<br>
+PyMOL> util.cbab<br>
+</code>
+
+The <code>util.cbab</code> command is a function whose name stands for color by atom blue.
+To access other colors, you can change the last letter of the function (e.g. <code>util.cbag</code> for green,  <code>util.cbac</code> for cyan,  <code>util.cbam</code> for magenta, etc.).  See <a href="http://www.pymolwiki.org/index.php/Advanced_Coloring#Coloring_by_atom_type">this wiki post</a> for more information. 
+To show off a certain part of the protein, we can click and drag along the sequence to select certain residues.  
+This selection is then saved as <code>sele</code> in the objects panel, and we can individually change the attributes of this selection through its menus.  
+For example, ((sele) &rarr; C &rarr; by element &rarr; yellow carbon) will highlight the selected amino acids.  Alternatively, we can run the following command in the command line:
+
+<code>
+PyMOL> util.cbay sele
+</code>
+
+<p>You can save a selection through (sele &rarr; A &rarr; rename selection).  
+This selection will then be saved for the rest of the session.  </p>
+
+
+<h3>Selection logic</h3>
+
+<p>
+To get help, type <code>help select</code>, and then hit the escape key.
+This will show the command window in the main window, and it will show the documentation for the <code>select</code> command.
+</p>
+    
+<p>
+Let's start by selecting all of the lysines
+</p>
+
+<code>
+sel lysines, resn lys
+</code>
+
+<p>
+This means that we want to make a new selection called <code>lysines</code>, we want to select by the residue name (<code>resn</code>), and we want residues with the name lysine (<code>lys</code>).  We can make these lysines blue (lsysines &rarr; C &rarr; Blues &rarr; Blue).</p>
+
+<p>
+Let's also select the prolines as well</p>
+
+<code>
+sel prolines, resn pro
+</code>
+
+<p>
+Before we continue, let's make the protein gray (<code>color gray</code>).
+Now, let's make a compound selection by selecting aspartic and glutamic acids.  </p>
+
+<code>
+sel acids, resn asp+glu
+</code>
+
+<p>We'll also select all of the bases</p>
+
+<code>
+sel acids, resn arg+lys+his
+</code>
+
+<p>We can select by attributes other than the type of residue.  For example, we can select residues by their indices:</p>
+
+<code>
+sel Q31, resi 31<br>
+</code>
+
+<p>Here <code>resi</code> refers to residue index.  Another useful selection type is <code>name</code>, which will select by the atom name of each element.  
+</p>
+
+<code>
+sel oxygens, name o
+</code>
+
+<p>
+Let's also try to select a ligand of a protein.
+    </p>
+
+<code>
+rein<br>
+fetch 1nqh<br>
+hide everything<br>
+show cartoon<br>
+color slate<br>
+</code>
+
+<p>Now, let's show the sequence (Display &rarr; Sequence).  If you notice, the first six amino acids are missing.  It's likely that they were deleted because they had low resolution.  Now, let's select and show spheres for each calcium
+</p>
+
+<code>
+select calciums, symbol ca<br>
+show spheres, calciums<br>
+color gray, calciums<br>
+</code>
+
+<p>
+Now, scroll to the right in the sequence display window and click on <code>CNC</code>.  This is vitamin B12.  First, let's show it.    In the objects pane, (sele &rarr; S &rarr; sticks) color the ligand yellow (C &rarr; by element &rarr; yellow).  Let's highlight the cobalt ion
+    </p>
+
+<code>
+select cobalt, symbol co<br>
+show spheres, cobalt
+</code>
+
+
+<p>Once we've made a selection, we can modify that selection (A &rarr; modify &rarr; extend &rarr; ).  We can extend the selection through covalent bonds or through space. 
+    </p>
+
+<code>
+select b12, resn cnc<br>
+select neighboring, byres b12 expand 5
+</code>
+
+<p>This will select every residue with any piece within 5 angstroms of the ligand.</p>
+
+<h3>Surfaces</h3>
+
+<p>Let's start by getting rid of everything and showing the surface</p>
+
+<code>
+hide everything<br>
+show surface<br>
+show sticks, b12<br>
+</code>
+
+<p>This will show a surface of the protein obtained by rolling a 4 angstrom ball over the protein surface.  We can also see how the vitamin fits into the protein binding pocket.  Let's also look at all of the lysines and the hydrophobic side chains.</p>
+
+<code>
+color green, resn lys
+color gray, resn phe+trp+leu+ile+met
+</code>
+
+<p>
+We can now see that there are two conspicuous regions of the protein, one with hydrophobic regions and one with hydrophobic residues.  This suggests that this protein is membrane-associated.  </p>
+
+<p>
+    Sometimes showing surfaces will cause the program to crash.  It's wise to save before showing surfaces, and by reducing the quality of the surface by changing the value of \texttt{surface\_quality}.  The default is 0, but for large structures like MS2 and TMV the best value is usually -1 or -2.  Changing \texttt{surface\_solvent} can help to make low-quality surfaces look better.</p>
+
+<code>
+set surface_quality, -1<br>
+set surface_solvent, on
+</code>
+
+<p>Let's go back to normal, though.  </p>
+
+
+<code>
+set surface_quality, 0<br>
+set surface_solvent, off
+</code>
+
+<h3>Making figures</h3>
+<p>The default pymol view is not very high resolution.  During regular display, Pymol doesn't anti-alias the view (smooth blending).  To make a better figure, we ray-trace the image to include high-resolution shadows and graphics.  
+    </p>
+
+
+
+<code>
+ray
+</code>
+
+<p>We can then save the resulting image (File &rarr; Save image as).  To explicitly indicate the image size to save, type the following
+</p>
+
+<code>
+png ~/Desktop/image.png, width=10cm, dpi=300, ray=1
+</code>
+
+<p>Sometimes we also want a transparent background (Display &rarr; Background &rarr; Opaque).  Now when we ray-trace, the background will be transparent.  There are also a few settings to make the ray-traced figures look better.
+    </p>
+
+<code>
+set fog, 0<br>
+set specular, 0<br>
+set ray_shadow, 0<br>
+set depth_cue, 0<br>
+</code>
+
+<p>We can also control the transparency of the surface </p>
+
+<code>
+set transparency, 0.5
+</code>
+
+
+<h3>Slabbing</h3>
+
+<p>In order to look inside of proteins, we have to use the slab feature.  Slabbing is controlled by the mouse wheel, or by whatever controls scrolling on your laptop.  
+In general Pymol doesn't do this very well.  Chimera is much better at providing slices through the protein.  </p>
+
+<p>One hack is to hide the residues in the front.  You can hold down shift while dragging the mouse to select a range of residues.  Then you can hide the specific representations that you don't want to see.  You can then complete the selection (sele &rarr; A &rarr; modify &rarr; complete &rarr; residues)</p>
+
+<h3>Measurement</h3>
+
+<p>Go to Wizard &rarr; Measurement.  Click one atom and then another atom.  Pymol will draw a line between the two with the distance in angstroms listed.  When you're finished, click done.
+</p>
+
+<h3>Mutations</h3>
+
+<p>Let's go to Wizard &rarr; mujjtagenesis.  Click on the residue that you want to mutate.  On the right, you should see a list of menus.  Click on <code>No Mutagenesis</code> and select Cys.  We also have to select the possible rotamers that could be here.  On the bottom, there is a series of buttons for stepping through the possible conformations.  When you find one you like, you can click Apply.  </p>
+
+h add
+
+<p>Let's start by showing the sticks</p>
+
+<code>
+show sticks
+</code>
