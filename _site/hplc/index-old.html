@@ -1,0 +1,267 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<title>ChartographMS</title>
+		<link rel="stylesheet" type="text/css" href="style.css">
+		<link href='http://fonts.googleapis.com/css?family=Rokkitt' rel='stylesheet' type='text/css'>
+		<script src="d3.min.js"></script>
+		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+		<script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
+		<link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.11.0/themes/smoothness/jquery-ui.css" />
+		
+		<script>
+			// Check for the various File API support.
+			if (window.File && window.FileReader && window.FileList && window.Blob) {
+			// Great success! All the File APIs are supported.
+			} else {
+			alert('The File APIs are not fully supported in this browser.');
+			}
+		</script>
+        
+		<script>
+			$(document).ready(function() {
+
+				
+				//determine when we're uploading files
+				$('#files')[0].addEventListener('change', handleFileSelect, false);
+				
+				//function called when files are selected
+				function handleFileSelect(evt) {
+
+					var files = evt.target.files;
+										
+					for (var i=0, f; f=files[i]; i++) {
+												
+						var reader = new FileReader();
+																		
+						reader.onload = (function(theFile) {
+								return function(e) {
+									thedata = e.target.result;
+                                    handleBinaryData(thedata);
+								};
+								})(f);
+						reader.readAsArrayBuffer(f);
+					
+					}
+				}
+				
+				//This function adapted from Aston project
+				// https://code.google.com/p/aston/
+				//
+				//This program is free software: you can redistribute it and/or modify
+				// under the terms of the GNU General Public License as published by
+				//the Free Software Foundation, either version 3 of the License, or
+				//(at your option) any later version.
+				//
+				//This program is distributed in the hope that it will be useful,
+				//but WITHOUT ANY WARRANTY; without even the implied warranty of
+				//MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+				//GNU General Public License for more details.
+
+				//You should have received a copy of the GNU General Public License
+				//along with this program.  If not, see <http://www.gnu.org/licenses/>.
+                function handleBinaryData(bd) {
+                    console.log(bd);
+					var b = new DataView(bd);
+					var start_time = b.getInt32(282)/60000.0;
+					var stop_time = b.getInt32(286)/60000.0;
+					
+					da = b.getFloat64(4732);
+                    
+                    var x, n, p;
+                    var done=false;
+                    var position = 6144;
+                    var out = [];
+                    
+                    while(!done) {
+                        x = b.getInt8(position);
+                        position += 1;
+                        n = b.getInt8(position);
+                        position+=1;
+                        
+                        if (x==0 && n==0) done=true;
+                        else {
+                            for (var i=0; i<n; i++) {
+                                p = b.getInt16(position);
+                                position+=2;
+                                if (n==-32768) {
+                                    p = b.getInt32(position);
+                                    position+=4;
+                                    out.push(p*da);
+                                }
+                                else if(out.length == 0) {
+                                    out.push(da*p);
+                                }
+                                else {
+                                    out.push(out[out.length-1] + da*p);
+                                }
+                                
+                            }
+                        }
+                    }
+                    out2=[];
+                    var ol = out.length;
+                    for (var i = 0; i<out.length; i++) {
+                        out2.push([start_time + i*((stop_time-start_time)/(ol-1)), out[i]]);
+                    }
+                    return out2;
+                }
+            
+            
+            
+            
+            });
+				
+				
+                
+				
+
+		</script>
+	</head>
+
+	<body>
+		<div id='leftbar2'>
+		</div>
+		<div id="leftbar">
+			<p class="title"><a href="/..">Chartograph</a>LC</p>
+			
+			  <div id="rdio">
+				<input type="radio" id="radio1" name="radio" checked="checked"><label for="radio1">Zoom</label>
+				<input type="radio" id="radio2" name="radio"><label for="radio2">Integrate</label>
+				<!--<input type="radio" id="radio3" name="radio"><label for="radio3">Pick Peaks</label>-->
+			  </div>
+			
+			<div id="filesdiv" class="sliderbox">
+				<p>Files</p>
+				<div class="slidercontent first">
+					<input type="file" id="files" name="files[]" multiple >
+					<div id="filelist">
+					</div>
+					<label for="showtitles" >Show titles:</label>
+					<input type="checkbox" id="showtitles" checked="checked"></input>
+				</div>
+			</div>
+			
+			<div id="general" class="sliderbox">
+				<p>General</p>
+				<div class="slidercontent">
+					<div id="rdio2">
+						<input type="radio" id="plotradio1" name="radio2" checked="checked"><label for="plotradio1">Plot</label>
+						<input type="radio" id="plotradio2" name="radio2"><label for="plotradio2">Axes</label>
+					</div>
+					
+					
+					<input type="text" id="graphwidth" value='8' size='3'></input>
+					by
+					<input type="text" id="graphheight" value='6' size='3'></input> in
+					<br>
+					<label for="xmin">X limits:</label>
+					<input type="text" id="xmin" value='0'  size='3'></input>
+					to
+					<input type="text" id="xmax" value='0'  size='3'></input>
+					<input type='button' id='resetzoom' value='Rst'></input>
+					<br>
+					<label for="autoscale" >Auto y scale:</label>
+					<input type="checkbox" id="autoscale" checked="checked"></input>
+					<br>
+					<label for="showyaxis" >Show y axis:</label>
+					<input type="checkbox" id="showyaxis"></input>
+					
+				</div>
+			</div>
+			
+			<div id="peaks" class="sliderbox">
+				<p>Peaks</p>
+				<div class="slidercontent">
+					<label for="showpeaks" >Show peaks:</label>
+					<input type="checkbox" id="showpeaks" checked="checked"></input>
+					<br>
+					<label for="lookahead">Lookahead:</label>
+					<input type="range" id="lookahead" min='0' max='1000' value='50'></input>
+					<br>
+					<label for="cutoff">Cutoff:</label>
+					<input type="range" id="cutoff" min='0' max='1000' value='500'></input>
+					<br>
+					<label for="peaksf">Sig Figs:</label>
+					<input type="range" id="peaksf" min='0' max='5' value='0'></input>
+				</div>
+			</div>
+			<div id="integrations" class="sliderbox">
+				<p>Integrations</p>
+				<div class="slidercontent">
+					<label for="intsf">Sig Figs:</label>
+					<input type="range" id="intsf" min='0' max='5' value='0'></input>
+					<br>
+					<input type="button" id="clearintegrals" value="Clear Integrals"></input>
+				</div>
+			</div>
+			<div id="styling" class="sliderbox">
+				<p>Styling</p>
+				<div class="slidercontent">
+					<label for="nticks">Tick Number:</label>
+					<input type="range" id="nticks" min='0' max='15' value='6'></input>
+					<br>
+					<label for="linecolor">Line Color:</label>
+					<input type="text" id="linecolor" value='#1B52BF'></input>
+					
+				</div>
+			</div>
+			<div class="sliderbox">
+				<label for="fname">File name:</label>
+				<input type="text" id="fname" value='mass_spectrum'  size='15'></input>
+				<br>
+				<input type="button" id="download" value="PDF"></input>
+				<input type="button" id="svgdownload" value="SVG"></input>
+				<input type="button" id="Clear Graph" value="clear"></input>
+				<br>
+				<a target="_blank" href="https://docs.google.com/forms/d/1F2txuHR11TZrUm9LmUvtCplzn_kmpVkZ_vSqu1VeyAw/viewform?usp=send_form">Feedback</a>
+				|
+				 <a href = "javascript:void(0)" onclick = "document.getElementById('light').style.display='block';document.getElementById('fade').style.display='block'">Shortcuts and directions</a>
+					
+			</div>
+		</div>
+		
+		
+		<div class="Center-Container is-Table">
+		  <div class="Table-Cell">
+			<div class="Center-Block">
+				<svg id='graphcanvas'></svg>
+			</div>
+			<div class="tooltip">Tooltip</div>
+		  </div>
+		</div>
+<div id="light" class="white_content">
+						To change plot titles, click on the title in the files box and type in a new name.
+						<br>
+						<br>
+						You can zoom by clicking and dragging on the graph canvas.  Zoom out by clicking on the graph without dragging.
+						<br>
+						<br>
+						Ticks are always shown at the ends of the axes.  If you see ticks without labels, try typing round numbers into the x limits boxes.
+						<br>
+						<br>
+						Keyboard shortcuts:
+						<br>
+						z: zoom
+						<br>
+						i: integrate
+						<br>
+						p: peakpick
+						<br>
+						f: zoom out
+						
+						
+						<a href = "javascript:void(0)" onclick = "document.getElementById('light').style.display='none';document.getElementById('fade').style.display='none'">Close</a>
+					</div>
+					<div id="fade" class="black_overlay" onclick = "document.getElementById('light').style.display='none';document.getElementById('fade').style.display='none'"></div>
+		
+		<form id="svgform" method="post" action="http://mbfgrp.cchem.berkeley.edu/plotting/splash.php">
+		<input type="hidden" id="output_format" name="output_format" value="">
+		<input type="hidden" id="data" name="data" value="">
+		<input type="hidden" id="xdim" name="xdim" value="">
+		<input type="hidden" id="ydim" name="ydim" value="">
+		<input type="hidden" id="filename" name="filename" value="">
+		</form>
+	</body>
+
+</html>

@@ -1,0 +1,98 @@
+<html>
+
+<head>
+<title>Mass combinations</title>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+<script>
+$( document ).ready(function() {
+	function matchMasses(massList, target, tolerance) {
+		//massList.sort(function(a, b){return a-b});
+
+		var hits = new Array();
+		var length = parseInt($('#maxlength').val());
+
+		helpMasses(massList, length, 0, 0, '', hits, target, tolerance);
+		return hits;		
+	}
+	
+	function helpMasses(massList, length, index, runningSum, sequence, hits, target, tolerance) {
+		if (index == massList.length) {
+			if (runningSum > target - tolerance && runningSum < target + tolerance) {
+				hits.push([sequence, runningSum]);
+			}
+		}
+		else if (runningSum > target + tolerance) {
+			return;
+		}
+		else {
+			for (var i = 0; i <length+1; i++) {
+				helpMasses(massList, length-i, index+1, runningSum+i*massList[index], sequence+i+',', hits, target, tolerance);
+			}
+		}
+	}
+	
+	function parseText() {
+		var text = $('#inputText').val();
+		var arrayOfLines = text.match(/[^\r\n]+/g);
+		var names = new Array();
+		var masses = new Array();
+		
+		for (var i = 0; i<arrayOfLines.length; i++) {
+			lsplit = arrayOfLines[i].split(',');
+			names.push(lsplit[0]);
+			masses.push(parseFloat(lsplit[1]));
+		}
+		return [names, masses];
+	}
+	
+	$('#compute').click(function() {
+		var massDict = parseText();
+		var results = matchMasses(massDict[1], parseFloat($('#target').val()), parseFloat($('#tolerance').val()));
+		
+		var report = '';
+		for (var i = 0; i < results.length; i++) {
+			lsplit = results[i][0].split(',');
+			for (var j = 0; j < lsplit.length-1; j++) {
+				report = report + massDict[0][j];
+				report = report + '<sub>'+lsplit[j]+'</sub>';
+			}
+			report = report + '='+results[i][1];
+			report = report + "<br>";
+		}
+		
+		$('#results').html(report);
+	});
+	
+});
+</script>
+</head>
+
+
+<body>
+<textarea id='inputText' rows='20' cols='50'>
+</textarea>
+<br>
+Target: 
+<input type='text' name='target' id='target'/>
+<br>
+Tolerance:
+<input type='text' name='tolerance' id='tolerance'/>
+<br>
+Max Length:
+<input type='text' name='maxlength' id='maxlength'/>
+<br>
+Condensation loss:
+<input type='text' name='condensation' id='condensation' value='18'/>
+<br>
+
+<button type='button' id='compute'>Calculate</button>
+
+<br>
+
+<div id='results'>
+
+</div>
+
+</body>
+
+</html>

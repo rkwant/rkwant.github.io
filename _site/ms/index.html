@@ -1,0 +1,1191 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<title>ChartographMS</title>
+		<link rel="stylesheet" type="text/css" href="style.css">
+		<link href='http://fonts.googleapis.com/css?family=Rokkitt' rel='stylesheet' type='text/css'>
+		<script src="d3.min.js"></script>
+		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+		<script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
+		<link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.11.0/themes/smoothness/jquery-ui.css" />
+		<script>
+		  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+		  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+		  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+		  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+		  ga('create', 'UA-52357311-1', 'auto');
+		  ga('send', 'pageview'); 
+		</script>
+		<script>
+			// Check for the various File API support.
+			if (window.File && window.FileReader && window.FileList && window.Blob) {
+			// Great success! All the File APIs are supported.
+			} else {
+			alert('The File APIs are not fully supported in this browser.');
+			}
+		</script>
+		<script>
+			$(document).ready(function() {
+				//file variables
+				var zoom;
+				var filedata = new Array();
+				var filenames = new Array();
+				var fileordering = new Array();
+				var uploaddone = 1;
+				var historicalxmin = 0;
+				var historicalxmax = 0;
+				
+				var xviewmin = 0;
+				var xviewmax = 0;
+				
+				//panning variables
+				var panstart = 0;
+				var panstop = 0;
+				var panning = false;
+				
+				//graph-specific variables
+				var w; //width
+				var h; //height
+				var m; //margins
+				var svg; //the svg for the graph canvas
+				var drag = d3.behavior.drag()
+							 .on("drag", dragmove);
+				
+				//determine when we're uploading files
+				$('#files')[0].addEventListener('change', handleFileSelect, false);
+				
+				//function called when files are selected
+				function handleFileSelect(evt) {
+					uploaddone = 0;
+					clearsvg();
+					filedata = new Array();
+					filenames = new Array();
+					fileordering = new Array();
+					var files = evt.target.files;
+										
+					for (var i=0, f; f=files[i]; i++) {
+						filenames.push(f.name)
+						filedata.push(null);
+						
+						var reader = new FileReader();
+						fileordering.push(i);
+												
+						reader.onload = (function(theFile) {
+								return function(e) {
+									thedata = readCSVStr(e.target.result);
+									////console.log(filenames.indexOf(theFile.name));
+									filedata[filenames.indexOf(theFile.name)] = new dataFile({data: thedata,fname: theFile.name});
+									checkDone();
+								};
+								})(f);
+						reader.readAsText(f);
+					
+					}
+				}
+				
+				//function to read a csv and return an array of data
+				function readCSVStr(str) {
+					var allTextLines = str.split(/\r\n|\n/);
+					var lines = [];
+					var seenFirstDataLine = false;
+					for (var i=0; i<allTextLines.length; i++) {
+						
+						//check for text headers
+						if (!seenFirstDataLine) {
+							var line = allTextLines[i];
+							if (line.match(/[abcdfghijklmnopqrstuvwxyz]/) == null) seenFirstDataLine=true;
+						}
+						if (seenFirstDataLine) {
+							var data = allTextLines[i].split(/[\s,]+/);
+							var tarr = [];
+							var checkNaN = false;
+							for (var j=0; j<data.length; j++) {
+								var num = parseFloat(data[j]);
+								tarr.push(num);
+								if (isNaN(num)) checkNaN = true;
+							}
+							if (!checkNaN) lines.push(tarr.slice(tarr.length-2));
+						}
+					}
+					return lines;
+				}
+				
+				function listfiles() {
+					var innertxt = '<ul id="filelisting">';
+					filenames.forEach(function(d,i) {
+						innertxt += '<li id="file'+i+'" class="fileitem"><span contenteditable="true" class="filespan" id="fspa'+i+'">'+d+'</span> <a href="#" id="delete'+i+'" class="deletebutton">delete</a></li>';
+					});
+					innertxt += '</ul>';
+					d3.select("#filelist").html(innertxt);
+					
+					$('#filelisting').sortable({stop: function(event, ui) {
+						checkFileOrdering();
+					}});
+					
+					$('#filelisting').bind('contextmenu', function(e){
+						return false;
+					}); 
+					
+					$('.deletebutton').click(function() {
+						removeElement(this);
+					});
+					
+					$(".filespan").on('click mousedown', function(e) {
+						e.stopPropagation();
+					});
+					
+					$(".filespan").on('keyup change', function() {
+						var fnumber = this.id.slice(4);
+						$('#title'+fileordering[fnumber]).html(this.innerHTML);
+					});
+				}
+				
+				function removeElement(elementlink) {
+					fileIndex = parseInt(elementlink.id.slice(6));
+					filenames.splice(fileIndex, 1);
+					filedata.splice(fileIndex, 1);
+					listfiles();
+					checkFileOrdering();
+				}
+				
+				function checkFileOrdering() {
+					var el = d3.select('#filelist').selectAll('.fileitem');
+					fileordering = new Array();
+					
+					el[0].forEach(function(d,i) {
+						var index = parseInt(d.id.slice(4));
+						fileordering.push(index);
+					});
+					
+					redraw();
+				}
+				
+				function checkDone() {
+					////console.log('Checking done');
+					////console.log(filedata);
+					////console.log(filenames);
+					
+					var anynulls = false;
+					for (var i = 0; i<filedata.length; i++) {
+						if (filedata[i] == null) anynulls = true;
+					}
+					if (!anynulls && uploaddone == 0) 
+					{
+						uploaddone=1;
+						listfiles();
+						plotdata();
+						$('#resetzoom').click();
+					}
+				}
+				
+				//object that represents each data file that we've loaded
+				function dataFile(options) {
+					this.data = options.data;
+					this.fname = options.fname;
+					this.lookahead = 0;
+					this.cutoff = 0;
+					this.peaksf = 0;
+					this.peaks = [];
+					this.showpeaks = false;
+					this.integrations = [];
+					this.verticalPadding = 30;
+					this.dragstart = 0;
+					
+					this.xmin = getmin(this.data, 0);
+					this.xmax = getmax(this.data, 0);
+					this.ymin = getmin(this.data, 1);
+					this.ymax = getmax(this.data, 1);
+					
+					this.xviewmin = this.xmin;
+					this.xviewmax = this.xmax;
+					this.yviewmin = this.ymin;
+					this.yviewmax = this.ymax;
+					
+					//set the axes scales
+					this.setScales = function(width, height, id) {
+						console.log('set scales');
+						this.width = width;
+						this.height = height - this.verticalPadding;
+						this.id = id;
+						
+						this.xScale = d3.scale.linear()
+										 .domain([this.xviewmin, this.xviewmax])
+										 .range([0, this.width]);
+						
+
+						this.yScale = d3.scale.linear()
+										 .domain([this.yviewmin-(this.yviewmax-this.yviewmin)*0.03, this.yviewmax+(this.yviewmax-this.yviewmin)*0.27])
+										 .range([this.height, 0]);
+					}
+					
+					this.applyCSS = function() {
+						d3.selectAll('.axis path').attr('display', 'none');
+						d3.selectAll('.axis').attr('shape-rendering', 'crispEdges');
+						d3.selectAll('.axis line').attr('stroke', 'black')
+												.attr('stroke-width', '1')
+												.attr('fill', 'none');
+						d3.selectAll('.axis .minor').attr('stroke-opacity', '0.5');
+						d3.selectAll('.domain').attr('fill', 'none')
+											.attr('stroke-width', '1')
+											.attr('stroke', 'black')
+											.attr('display', 'display');
+						d3.selectAll('.x .tick text').attr('dy', '0')
+													.attr('transform', 'translate(0, 10)')
+													.attr("font-size", "12px")
+													.attr("font-family", "sans-serif");
+						
+						d3.selectAll('path.line').attr('stroke-miterlimit', '1')
+												.attr('stroke-linejoin', 'bevel');
+												
+						d3.selectAll('path.dataline').attr("stroke-width", "1")
+												.attr("fill", "none")
+												.attr("stroke", "#1B52BF");
+										   
+						if (/(^#[0-9A-F]{6}$)|(^#[0-9A-F]{3}$)/i.test(getv("#linecolor"))) d3.selectAll("path.dataline").attr("stroke", getv("#linecolor"));
+
+					}
+					
+					this.plotLine = function(start, stop) {
+						this.chartContainer.selectAll("path.line").remove();
+						
+						//create the line element
+						xS1 = this.xScale;
+						yS1 = this.yScale;
+						if (start==stop) {
+							start = self.xmin;
+							stop = self.xmax;
+						}
+						
+						this.line = d3.svg.line()
+									 .x(function (d, xs, ys) {
+										return xS1(d[0]);
+									 })
+									 .y(function (d, xs, ys) {
+										return yS1(d[1]);
+									 });
+						//add the line to the graph
+						
+						dataPerPixel = this.data.length / (this.width * (this.xmax - this.xmin) / (stop - start));
+						pixelWidth = (stop - start) / this.width;
+						//console.log(dataPerPixel);
+						//console.log(pixelWidth);
+						datastart = start;
+						datastop = stop;
+						
+						////console.log(this.data.length);
+						var dataResampled = this.data.filter(
+							function(d, i, q) { 
+								//see if the point is one pixel away from last one
+								var toremove = i % Math.ceil(dataPerPixel) == 0;
+								//console.log(d);
+								
+								//if it's outside of the window, don't include the point
+								if (d[0] < start || d[0] > stop) return false;
+								
+								//if this point is between others, don't include it
+								if (!toremove && i>0 && i<q.length-2) {
+									var prev = q[i-1][1];
+									var thi = q[i][1];
+									var next = q[i+1][1];
+									
+									var previous_x = q[i-1][0];
+									var current_x = q[i][0];
+									var next_x = q[i+1][0];
+									
+									if (current_x - previous_x < pixelWidth && next_x - current_x < pixelWidth) {
+										if ((prev < thi && thi < next) || (prev > thi && thi > next)) return false;
+									}
+								}
+								//console.log('included');
+								return true;
+							}
+						);
+						////console.log(dataResampled.length);
+						
+						this.chartContainer.append("path")
+										   .attr("class", "line dataline")
+										   .attr("d", this.line(dataResampled));
+										   
+										   
+					}
+					
+					this.addTitle = function() {
+					//create the line element
+							this.chartContainer.selectAll("text.plottitle").remove();
+							if (d3.select('#showtitles').property('checked')) 
+							this.chartContainer.append("text")
+												.attr("class", "plottitle")
+												.attr("x", this.width/2)
+												.attr("y", 0)
+												.text($('#fspa'+fileordering[this.id]).html())
+												.attr("font-family", "sans-serif")
+												.attr("font-size", "14px")
+												.attr("text-align", "center").attr("text-anchor", "middle")
+												.attr("id", "title"+this.id);
+					}
+					
+					//actually plot the data
+					this.plot = function() { 
+						this.chartContainer = svg.append('g').attr('class', 'filebox')
+												 .attr('transform', 'translate(0, '+(this.height+this.verticalPadding)*this.id+')');
+						
+						this.eventSplashZone = this.chartContainer.append('svg:rect')
+						   .attr("width", this.width)
+						   .attr("height", this.height)
+						   .attr('fill', 'none');
+						svg.attr('pointer-events', 'all')
+						   .on("mousedown", pandown)
+						   .on("mouseup", panup)
+						   .on("mousemove", pandrag)
+						   .on("mouseout", panout);
+						
+						// create xAxis
+						this.xAxis = d3.svg.axis()
+										.scale(this.xScale)
+										.orient("bottom")
+										.ticks(getv("#nticks"));
+										
+						if (d3.select('#showyaxis').property('checked')) {
+							this.yAxis = d3.svg.axis()
+										.scale(this.yScale)
+										.orient("left")
+										.ticks(getv("#nticks"));
+										
+							this.chartContainer.append("svg:g")
+							  .attr("class", "y axis")
+							  .call(this.yAxis);
+						}
+										
+						if (this.id < filedata.length - 1) this.xAxis.tickFormat(function(d) {return ""});
+						else this.xAxis.tickFormat(function(d) {return d})
+						
+						// Add the x-axis.
+						this.chartContainer.append("svg:g")
+							  .attr("class", "x axis")
+							  .attr("transform", "translate(0," + this.height + ")")
+							  .call(this.xAxis);
+	//					this.xviewmax = xviewmax;
+	//					this.xviewmin = xviewmin;
+						
+						this.plotLine(this.xviewmin, this.xviewmax);
+						this.findAndDisplayPeaks();
+						this.displayIntegration();
+						this.addTitle();
+						this.applyCSS();
+						
+						xS1 = this.xScale;
+						yS1 = this.yScale;
+						
+					}
+					
+					this.checkPeakMatch = function() {
+                        return (getv('#lookahead') == this.lookahead && getv('#cutoff') == this.cutoff && getv('#peaksf') == this.peaksf && this.showpeaks == d3.select('#showpeaks').property('checked'));
+					}
+					
+					this.setPeakParams = function() {
+						var foundlookahead = getv('#lookahead');
+						var foundcutoff = getv('#cutoff');
+						var foundsf = getv('#peaksf');
+						
+						this.showpeaks = d3.select('#showpeaks').property('checked');
+						this.peaksf = foundsf;
+						
+						if (foundlookahead == this.lookahead && foundcutoff == this.cutoff) {
+							return false;
+						}
+						else {
+							this.lookahead = foundlookahead;
+							this.cutoff = foundcutoff;
+							return true;
+						}
+					}
+					
+					this.findAndDisplayPeaks = function() {
+						if (!d3.select('#showpeaks').property('checked')) return;
+						
+						if (this.setPeakParams()) {
+							////console.log('detecting peaks');
+							this.peaks = peakdetect(this.data, 50);
+						}
+						
+						////console.log('plotting peaks');
+						
+						this.showpeaks = d3.select('#showpeaks').property('checked');
+						xS1 = this.xScale;
+						yS1 = this.yScale;
+						
+						var stari = this.xviewmin;
+						var stpi = this.xviewmax;
+						var peaksLimited = this.peaks.filter(
+							function(d, i, q) { 
+								if (d[0] > stari && d[0] < stpi) return true;
+								else return false;
+							}
+						);
+						
+						
+						this.chartContainer.selectAll("text")
+							   .data(peaksLimited, function(d) {return d;})
+							   .enter()
+							   .append("text")
+							   .text(function(d) {
+									return d[0].toFixed(parseInt(getv('#peaksf')));// + "," + d[1]; //format text hered
+							   })
+							   .attr("x", function(d) {
+									return xS1(d[0]);
+							   })
+							   .attr("y", function(d) {
+									return yS1(d[1]);
+							   })
+							   .attr("font-family", "sans-serif")
+							   .attr("font-size", "11px")
+							   .attr("class", "label")
+							   .call(drag);
+							   
+						$("svg text").on('click mousedown', function(e) {
+							e.stopPropagation();
+						});
+					}
+					
+					this.repeak = function() {
+						
+                        if (this.checkPeakMatch()) {
+                            return;
+                        }
+						this.chartContainer.selectAll('.label').remove();
+						this.findAndDisplayPeaks();
+                        this.setPeakParams();
+					}
+					
+					this.reint = function() {
+						this.chartContainer.selectAll('.integrationlabel').remove();
+						this.chartContainer.selectAll('.integrationline').remove();
+						this.displayIntegration();
+					}
+				
+					this.panned = function(panstart, panstop) {
+						var xstart = panstart;
+						var xstop = panstop;
+						////console.log(xstart+' '+xstop);
+						
+						if (d3.select('#radio2').property('checked')) this.integrate(xstart, xstop);
+						else if (xstop > xstart) this.zoom(xstart, xstop, 'page');
+						else this.zoom(xstop,xstart, 'page');
+					}
+					
+					this.createRectangle = function(xdata, ydata) {
+						this.dragstart = xdata;
+						this.chartContainer.append( "rect")
+											.attr({
+												class   : "selection",
+												x       : xdata,
+												y       : 0,
+												width   : 0,
+												height  : this.height
+											});
+					}
+					
+					this.updateRectangle = function(xdata, ydata) {
+						
+						var s = this.chartContainer.select( "rect.selection");
+
+						if( !s.empty()) {
+							var d = {
+									x       : parseInt( s.attr( "x"), 10),
+									y       : parseInt( s.attr( "y"), 10),
+									width   : parseInt( s.attr( "width"), 10),
+									height  : parseInt( s.attr( "height"), 10)
+								};
+
+							if (xdata > this.dragstart) d.width = xdata - this.dragstart;
+							else {
+								d.width = this.dragstart - xdata;
+								d.x = xdata;
+							}
+						   
+							s.attr( d);
+						}
+					}
+					
+					this.removeRectangle = function() {
+						//console.log('got to removing things');
+						this.chartContainer.selectAll( "rect.selection").remove();
+					}
+					
+					this.clearIntegration = function() {
+						this.integrations = [];
+						this.displayIntegration();
+					}
+					
+					this.integrate = function(start, stop) {
+						start = this.xScale.invert(start);
+						stop = this.xScale.invert(stop);
+						
+						var sum = 0;
+						for (var i = 0; i < this.data.length-1; i++) {
+							var p1x = this.data[i][0];
+							var p2x = this.data[i+1][0];
+							var p1y = this.data[i][1];
+							var p2y = this.data[i+1][1];
+							
+							
+							if (p1x > start && p2x < stop) {
+								sum += ((p2x-p1x)*((p1y+p2y)/2));
+							}
+							
+						}
+						this.integrations.push([start, stop, sum]);
+						this.displayIntegration();
+						////console.log(this.integrations);
+
+					}
+					
+					this.displayIntegration = function() {
+						this.chartContainer.selectAll('.integrationline').remove();
+						this.chartContainer.selectAll('.integrationlabel').remove();
+						var integrationsum=0;
+						for (var i=0; i<this.integrations.length; i++) {
+							integrationsum += this.integrations[i][2];
+						}
+						for (var i = 0; i< this.integrations.length; i++) {
+							var start = this.integrations[i][0];
+							var stop = this.integrations[i][1];
+							var intvalue = this.integrations[i][2] / integrationsum * 100;
+							
+							this.chartContainer.append("line")
+												.attr("class", "integrationline")
+												.attr("x1", this.xScale(start))
+												.attr("x2", this.xScale(stop))
+												.attr("y1", this.yScale(this.yviewmax+(this.yviewmax-this.yviewmin)*0.1))
+												.attr("y2", this.yScale(this.yviewmax+(this.yviewmax-this.yviewmin)*0.1))
+												.attr("stroke-width", 1)
+												.attr("stroke", "black");
+							
+							//create the line element
+							this.chartContainer.append("text")
+												.attr("class", "integrationlabel")
+												.attr("x", this.xScale((start+stop)/2.0))
+												.attr("y", this.yScale(this.yviewmax+(this.yviewmax-this.yviewmin)*0.12))
+												.text(intvalue.toFixed(parseInt(getv('#intsf'))))
+												.attr("font-family", "sans-serif")
+												.attr("font-size", "13px")
+												.attr("text-align", "center").attr("text-anchor", "middle");
+						}
+					}
+				
+					this.zoom = function(start, stop, coordinates) {
+						
+						//find the appropriate x-axis scale
+						if (start==stop) {
+							////console.log('they were equal');
+							this.xviewmin = xviewmin;
+							this.xviewmax = xviewmax;
+						}
+						else {
+							if (coordinates == 'page') {
+								this.xviewmin = this.xScale.invert(start);
+								this.xviewmax = this.xScale.invert(stop);
+							}
+							else {
+								this.xviewmin = start;
+								this.xviewmax = stop;
+							}
+						}
+						this.xScale.domain([this.xviewmin, this.xviewmax]);
+						this.chartContainer.select("g.x.axis").call(this.xAxis);
+						
+						//figure out the y-scaling
+						if (d3.select('#autoscale').property('checked')) {
+							this.yviewmin = 0;
+							this.yviewmax = 0;
+							for (var i = 0; i<this.data.length; i++) {
+								if (this.data[i][0] > this.xviewmin && this.data[i][0] < this.xviewmax) {
+									if (this.data[i][1] > this.yviewmax) this.yviewmax = this.data[i][1];
+									if (this.data[i][1] < this.yviewmin) this.yviewmin = this.data[i][1];
+								}
+							}
+							this.yScale.domain([this.yviewmin-(this.yviewmax-this.yviewmin)*0.03, this.yviewmax+(this.yviewmax-this.yviewmin)*0.27]);
+							if (d3.select('#showyaxis').property('checked')) this.chartContainer.select("g.y.axis").call(this.yAxis);
+						}
+						else {
+							this.yviewmin = this.ymin;
+							this.yviewmax = this.ymax;
+							this.yScale.domain([this.yviewmin-(this.yviewmax-this.yviewmin)*0.03, this.yviewmax+(this.yviewmax-this.yviewmin)*0.27]);
+							if (d3.select('#showyaxis').property('checked')) this.chartContainer.select("g.y.axis").call(this.yAxis);
+						}
+						
+						this.chartContainer.selectAll("text.label").remove();
+						this.plotLine(this.xviewmin, this.xviewmax);
+						this.findAndDisplayPeaks();
+						this.displayIntegration();
+						this.applyCSS();
+					}
+				}
+				
+				function getv(selector) {
+					return d3.select(selector).property('value');
+				}
+				
+				function getmin(arr, pos) {
+					return d3.min(arr, function (k) {return k[pos]; });
+				}
+				
+				function getmax(arr, pos) {
+					return d3.max(arr, function (k) {return k[pos]; });
+				}
+				
+				function peakdetect(d, maxpeaks) {
+					lookahead = parseFloat(d3.select('#lookahead').property('value'));
+					lookahead = lookahead * 100.0/1000.0;
+					lookahead = 1.0 + (lookahead*lookahead);
+					////console.log(lookahead);
+					
+					
+					cutoff = parseFloat(d3.select('#cutoff').property('value'));
+					cutoff = cutoff * 6.9 / 1000.0;
+					cutoff = 0.001*Math.pow(2.718,cutoff);
+					////console.log(cutoff);
+					
+					var candidates = new Array();
+					var mx = d[0][0]; var my = d[0][1];
+					mi=0; pi=0;
+					
+					var maxy = d3.max(d, function(k) { return k[1]; });
+					
+					for (i=0; i<d.length; i++) {
+						x = d[i][0];
+						y = d[i][1];
+						
+						//we've made it lookahead away without erasing a match
+						if (x > mx + lookahead) {
+							if (my/maxy > cutoff && getmax(d.slice(d3.max([0, mi-(i-mi)]), d3.min([d.length, mi])), 1) < my)
+							{
+								candidates.push([mx, my]);
+							}
+							mx = x;
+							my = y;
+							mi=i;
+						}
+						if (y > my) {
+							mx = x;
+							my = y;
+							if (x>lookahead) pi = pi + i - mi;
+							mi=i;
+						}
+						
+						
+					}
+					////console.log(candidates);
+					return candidates;
+				}
+				
+				function clearsvg() {
+					d3.select('svg').text('');
+				}
+				
+				function setup_canvas() {
+					w = parseFloat(d3.select('#graphwidth').property('value')) * 72.0;
+					h = parseFloat(d3.select('#graphheight').property('value')) * 72.0;
+					
+					if (d3.select('#plotradio2').property('checked')) h = h*filedata.length;
+					
+					m = [80, 80, 80, 80];
+					
+					//Create SVG element
+					svg = d3.select("#graphcanvas")
+								.attr("width", w + m[1] + m[3])
+								.attr("height", h + m[0] + m[2])
+								.append("svg:g")
+								.attr("transform", "translate(" + m[3] + "," + m[0] + ")");
+				}
+				
+				function applyCSS() {
+					fileordering.forEach(function (dnum, i) {
+						d = filedata[dnum];
+						d.applyCSS();
+					});		
+				}
+				
+				function setXLimits() { 
+					var minval = parseFloat(getv('#xmin'));
+					var maxval = parseFloat(getv('#xmax'));
+					if (minval > maxval || minval == maxval) {
+						var lastFile = filedata[fileordering[fileordering.length-1]];
+						xviewmin = lastFile.xmin;
+						xviewmax = lastFile.xmax;
+					}
+					else {
+						xviewmin = minval;
+						xviewmax = maxval;
+					}
+				}
+				
+				function plotdata() {
+					//define the width, height, and margins
+					setup_canvas();
+					////console.log(filedata);
+					//setXLimits();
+					fileordering.forEach(function (dnum, i) {
+						d = filedata[dnum];
+						d.setScales(w, h/filedata.length, i);
+						d.plot();
+					});			
+					setCookies();
+				}
+				
+				////PANNING
+				// On click, update the x-axis.
+				function pandown() {
+					panning = true;
+					panstart = d3.mouse(this)[0];
+					//console.log(panstart);
+					
+					var p = d3.mouse(this);
+					
+					filedata.forEach(function (d, i) {
+						d.createRectangle(p[0], p[1]);
+					});
+				}
+				
+				function pandrag() {
+					var e = d3.event;		
+					$('.tooltip').html(xS1.invert(d3.mouse(this)[0]).toFixed(parseInt(getv('#peaksf'))));
+					$('.tooltip').css('left', e.pageX + 10).css('top', e.pageY + 10).css('display', 'block');
+					
+					var p = d3.mouse(this);
+					filedata.forEach(function (d, i) {
+						d.updateRectangle(p[0], p[1]);
+					});
+				}
+				
+				function panup() {
+					if (panning) {
+						panstop = d3.mouse(this)[0];
+						//console.log(panstart+' '+panstop);
+						
+						//console.log(this);
+						for (var i = 0; i<filedata.length; i++) {
+							if (filedata[i].eventSplashZone[0][0] == this) {
+								panstart = filedata[i].xScale.invert(panstart);
+								panstop = filedata[i].xScale.invert(panstop);
+							}
+						}
+						
+						
+						filedata.forEach(function (d, i) {
+							d.panned(panstart, panstop);
+						});	
+					}
+					panning = false;
+					
+					setXLimits();
+					filedata.forEach(function (d, i) {
+						d.removeRectangle();
+					});
+				}
+				
+				function panout() {
+					$('.tooltip').css('display', 'none');
+					//filedata.forEach(function (d, i) {
+					//	d.removeRectangle();
+					//});
+					//panning = false;
+				}
+			
+				function updatePeaks() {
+					filedata.forEach(function (d, i) {
+						d.repeak();
+					});
+				}
+				
+				function updateTitles() {
+					filedata.forEach(function (d, i) {
+						d.addTitle();
+					});
+				}
+				
+				function clearIntegrals() {
+					filedata.forEach(function (d, i) {
+						d.clearIntegration();
+					});
+				}
+				
+				function updateInts() {
+					filedata.forEach(function (d, i) {
+						d.reint();
+					});
+				}
+				
+				function redraw() {
+					clearsvg();
+					plotdata();
+				}
+				
+				function adjustXlim() {
+					var minval = parseFloat(getv('#xmin'));
+					var maxval = parseFloat(getv('#xmax'));
+					
+					if (historicalxmin != minval || historicalxmax !=maxval) {
+						historicalxmin = minval;
+						historicalxmax = maxval;
+						if (historicalxmax >= historicalxmin) {
+							setXLimits();
+							filedata.forEach(function (d, i) {
+								d.zoom(historicalxmin, historicalxmax, 'data');
+							});
+						}
+					}
+				}
+				
+				function dragmove(d) {
+					d3.select(this)
+					  .attr("y", d3.event.y)
+					  .attr("x", d3.event.x)
+				}
+				
+				var formIDs = ['showtitles', 'graphwidth', 'graphheight', 'autoscale', 'showyaxis', 'lookahead', 
+				'cutoff', 'peaksf', 'intsf', 'nticks', 'linecolor', 'fname', 'plotradio2', 'plotradio1'];
+				var today = new Date();
+				var expiry = new Date(today.getTime() + 30 * 24 * 3600 * 1000); // plus 30 days
+				
+				function setCookies() {
+					////console.log("I got called");
+					for (var i = 0; i<formIDs.length; i++) {
+						if (['plotradio1', 'plotradio2', 'autoscale', 'showtitles', 'showyaxis'].indexOf(formIDs[i]) < 0) var cookietext = formIDs[i] + "=" + escape(getv('#'+formIDs[i])) + "; expires=" + expiry.toGMTString();
+						else {
+							var cookietext = formIDs[i] + "=" + escape(d3.select('#'+formIDs[i]).property('checked')) + "; expires=" + expiry.toGMTString();
+							
+						}
+						
+						document.cookie=cookietext;
+						////console.log(cookietext);
+					}
+				}
+				
+				function getCookie(name) {
+					var re = new RegExp(name + "=([^;]+)");
+					var value = re.exec(document.cookie);
+					return (value != null) ? unescape(value[1]) : null;
+				}
+				
+				function loadCookies() {
+					////console.log('loading cookies');
+					for (var i = 0; i<formIDs.length; i++) {
+						////console.log(getCookie(formIDs[i]));
+						if (thevalue = getCookie(formIDs[i])) {
+							
+							if (['plotradio1', 'plotradio2', 'autoscale', 'showtitles', 'showyaxis'].indexOf(formIDs[i]) < 0)	$('#'+formIDs[i]).val(getCookie(formIDs[i]));
+							else if (['plotradio1', 'plotradio2'].indexOf(formIDs[i])<0) d3.select('#'+formIDs[i]).property('checked', thevalue=='true');
+							else if (thevalue == 'true') $('#'+formIDs[i]).click();
+						}
+					}
+				}
+				
+				loadCookies();
+				
+				//callbacks on changing the control panel
+				//$(".sliderbox").hover( function() {
+				//	$(this).siblings().children(".slidercontent").slideUp();
+				//	$(this).children(".slidercontent").slideDown();
+				//});
+				
+				$(".sliderbox p").click(function() {
+					if ($(this).siblings(".slidercontent").css('display') == 'none') $(this).siblings(".slidercontent").slideDown();
+					else $(this).siblings(".slidercontent").slideUp();
+				});
+				
+				$("#graphwidth").on('keyup change', function() {
+					redraw();
+				});
+				
+				$("#graphheight").on('keyup change', function() {
+					redraw();
+				});
+				
+				$('#plotradio1').on('change', function() {
+					redraw();
+				});
+				
+				$('#plotradio2').on('change', function() {
+					redraw();
+				});
+				
+				$("#linecolor").on('keyup change', function() {
+					applyCSS();
+				});
+				
+				$("#xmin").on('keyup change', function() {
+					adjustXlim();
+				});
+				
+				$("#xmax").on('keyup change', function() {
+					adjustXlim();
+				});
+				
+				$("#showpeaks").change(function () {
+					updatePeaks();
+				});
+				
+				$("#showtitles").change(function () {
+					updateTitles();
+				});
+				
+				$("#lookahead").on("change mousemove", function () {
+					updatePeaks();
+				});
+				
+				$("#cutoff").on("change mousemove", function () {
+					updatePeaks();
+				});
+				
+				$("#peaksf").on("change mousemove", function () {
+					updatePeaks();
+				});
+				
+				$("#intsf").on("change mousemove", function () {
+					updateInts();
+				});
+				
+				$("#nticks").on("change", function () {
+					redraw();
+				});
+				
+				$("#showyaxis").on("change", function () {
+					redraw();
+				});
+				
+				$('#clear').click(function () {
+					clearsvg();
+				});
+				
+				$('#resetzoom').click(function () {
+					$("#xmin").val(0);
+					$("#xmax").val(0);
+					setXLimits();
+					filedata.forEach(function (d, i) {
+						d.zoom(xviewmin, xviewmax, 'data');
+					});
+				});
+				
+				$('#clearintegrals').click(function (e) {
+					clearIntegrals();
+				});
+				
+				$('#download').click(function (e) {
+					setCookies();
+					// Get the d3js SVG element
+					var svg = document.getElementById("graphcanvas");
+					// Extract the data as SVG text string
+					var svg_xml = (new XMLSerializer).serializeToString(svg);
+					
+					// Submit the <FORM> to the server.
+					// The result will be an attachment file to download.
+					var form = document.getElementById("svgform");
+					form['output_format'].value = output_format;
+					form['xdim'].value = d3.select('#graphcanvas').attr('width');
+					form['ydim'].value = d3.select('#graphcanvas').attr('height');
+					form['filename'].value = getv('#fname');
+					
+					form['data'].value = svg_xml;
+					form.submit();
+				});
+				
+				$('#svgdownload').click(function (e) {
+					setCookies();
+					var e = document.createElement('script');
+					if (window.location.protocol === 'https:') { 
+						e.setAttribute('src', 'https://raw.github.com/NYTimes/svg-crowbar/gh-pages/svg-crowbar.js'); 
+					} 
+					else { 
+						e.setAttribute('src', 'http://nytimes.github.com/svg-crowbar/svg-crowbar.js'); 
+					}
+					e.setAttribute('class', 'svg-crowbar'); 
+					document.body.appendChild(e); 
+				});
+				
+				$( "#rdio" ).buttonset();
+				$( "#rdio2" ).buttonset();
+				
+				$("body").keypress(function(e) {
+					//type i, code = 73
+					//console.log(e.which);
+					if (e.keyCode==122) {
+						$("#radio1").click();
+					}
+					//type z, code = 90
+					if (e.keyCode==105) {
+						$("#radio2").click();
+					}
+					//type p, code = 80
+					if (e.keyCode==112) {
+						$("#radio3").click();
+					}
+					//pressed f
+					if (e.keyCode==102) {
+						filedata.forEach(function (d, i) {
+							d.panned(0, 0);
+						});	
+					}
+					
+				});
+				
+				
+				$('#filesdiv').keypress(function(e) {
+					e.stopPropagation();
+				});
+				
+				$('input').keypress(function(e) {
+					e.stopPropagation();
+				});
+				
+			});
+		</script>
+	</head>
+
+	<body>
+		<div id='leftbar2'>
+		</div>
+		<div id="leftbar">
+			<p class="title"><a href="/..">Chartograph</a>MS</p>
+			
+			  <div id="rdio">
+				<input type="radio" id="radio1" name="radio" checked="checked"><label for="radio1">Zoom</label>
+				<input type="radio" id="radio2" name="radio"><label for="radio2">Integrate</label>
+				<!--<input type="radio" id="radio3" name="radio"><label for="radio3">Pick Peaks</label>-->
+			  </div>
+			
+			<div id="filesdiv" class="sliderbox">
+				<p>Files</p>
+				<div class="slidercontent first">
+					<input type="file" id="files" name="files[]" multiple >
+					<div id="filelist">
+					</div>
+					<label for="showtitles" >Show titles:</label>
+					<input type="checkbox" id="showtitles" checked="checked"></input>
+				</div>
+			</div>
+			
+			<div id="general" class="sliderbox">
+				<p>General</p>
+				<div class="slidercontent">
+					<div id="rdio2">
+						<input type="radio" id="plotradio1" name="radio2" checked="checked"><label for="plotradio1">Plot</label>
+						<input type="radio" id="plotradio2" name="radio2"><label for="plotradio2">Axes</label>
+					</div>
+					
+					
+					<input type="text" id="graphwidth" value='8' size='3'></input>
+					by
+					<input type="text" id="graphheight" value='6' size='3'></input> in
+					<br>
+					<label for="xmin">X limits:</label>
+					<input type="text" id="xmin" value='0'  size='3'></input>
+					to
+					<input type="text" id="xmax" value='0'  size='3'></input>
+					<input type='button' id='resetzoom' value='Rst'></input>
+					<br>
+					<label for="autoscale" >Auto y scale:</label>
+					<input type="checkbox" id="autoscale" checked="checked"></input>
+					<br>
+					<label for="showyaxis" >Show y axis:</label>
+					<input type="checkbox" id="showyaxis"></input>
+					
+				</div>
+			</div>
+			
+			<div id="peaks" class="sliderbox">
+				<p>Peaks</p>
+				<div class="slidercontent">
+					<label for="showpeaks" >Show peaks:</label>
+					<input type="checkbox" id="showpeaks" checked="checked"></input>
+					<br>
+					<label for="lookahead">Lookahead:</label>
+					<input type="range" id="lookahead" min='0' max='1000' value='50'></input>
+					<br>
+					<label for="cutoff">Cutoff:</label>
+					<input type="range" id="cutoff" min='0' max='1000' value='500'></input>
+					<br>
+					<label for="peaksf">Sig Figs:</label>
+					<input type="range" id="peaksf" min='0' max='5' value='0'></input>
+				</div>
+			</div>
+			<div id="integrations" class="sliderbox">
+				<p>Integrations</p>
+				<div class="slidercontent">
+					<label for="intsf">Sig Figs:</label>
+					<input type="range" id="intsf" min='0' max='5' value='0'></input>
+					<br>
+					<input type="button" id="clearintegrals" value="Clear Integrals"></input>
+				</div>
+			</div>
+			<div id="styling" class="sliderbox">
+				<p>Styling</p>
+				<div class="slidercontent">
+					<label for="nticks">Tick Number:</label>
+					<input type="range" id="nticks" min='0' max='15' value='6'></input>
+					<br>
+					<label for="linecolor">Line Color:</label>
+					<input type="text" id="linecolor" value='#1B52BF'></input>
+					
+				</div>
+			</div>
+			<div class="sliderbox">
+				<label for="fname">File name:</label>
+				<input type="text" id="fname" value='mass_spectrum'  size='15'></input>
+				<br>
+				<input type="button" id="download" value="PDF"></input>
+				<input type="button" id="svgdownload" value="SVG"></input>
+				<input type="button" id="Clear Graph" value="clear"></input>
+				<br>
+				<a target="_blank" href="https://docs.google.com/forms/d/1F2txuHR11TZrUm9LmUvtCplzn_kmpVkZ_vSqu1VeyAw/viewform?usp=send_form">Feedback</a>
+				|
+				 <a href = "javascript:void(0)" onclick = "document.getElementById('light').style.display='block';document.getElementById('fade').style.display='block'">Shortcuts and directions</a>
+					
+			</div>
+		</div>
+		
+		
+		<div class="Center-Container is-Table">
+		  <div class="Table-Cell">
+			<div class="Center-Block">
+				<svg id='graphcanvas'></svg>
+			</div>
+			<div class="tooltip">Tooltip</div>
+		  </div>
+		</div>
+<div id="light" class="white_content">
+						To change plot titles, click on the title in the files box and type in a new name.
+						<br>
+						<br>
+						You can zoom by clicking and dragging on the graph canvas.  Zoom out by clicking on the graph without dragging.
+						<br>
+						<br>
+						Ticks are always shown at the ends of the axes.  If you see ticks without labels, try typing round numbers into the x limits boxes.
+						<br>
+						<br>
+						Keyboard shortcuts:
+						<br>
+						z: zoom
+						<br>
+						i: integrate
+						<br>
+						p: peakpick
+						<br>
+						f: zoom out
+						
+						
+						<a href = "javascript:void(0)" onclick = "document.getElementById('light').style.display='none';document.getElementById('fade').style.display='none'">Close</a>
+					</div>
+					<div id="fade" class="black_overlay" onclick = "document.getElementById('light').style.display='none';document.getElementById('fade').style.display='none'"></div>
+		
+		<form id="svgform" method="post" action="http://mbfgrp.cchem.berkeley.edu/plotting/splash.php">
+		<input type="hidden" id="output_format" name="output_format" value="">
+		<input type="hidden" id="data" name="data" value="">
+		<input type="hidden" id="xdim" name="xdim" value="">
+		<input type="hidden" id="ydim" name="ydim" value="">
+		<input type="hidden" id="filename" name="filename" value="">
+		</form>
+	</body>
+
+</html>

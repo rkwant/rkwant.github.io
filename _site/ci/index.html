@@ -1,0 +1,372 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="icon" href="../../favicon.ico">
+
+    <title>Chartograph</title>
+
+    <!-- Bootstrap core CSS -->
+    <!-- Latest compiled and minified CSS -->
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.0/css/bootstrap.min.css">
+	<link rel="stylesheet" href="styles.css">
+
+	<!-- Optional theme -->
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.0/css/bootstrap-theme.min.css">
+	<script src="d3.min.js"></script>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+  
+  <style>
+.errorbar{
+stroke:#000;
+}
+  
+  
+.bar {
+  fill: steelblue;
+}
+
+.bar:hover {
+  fill: brown;
+}
+
+.axis {
+  font: 10px sans-serif;
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+.x.axis path {
+  display: none;
+}
+
+</style>
+  
+  <script>
+  
+  $(document).ready(function() {
+	var lines;
+	var data;
+	var points;
+	
+	$('#calculate').click(function() {
+		var datastring = $('#data-input').val();
+		datastring = datastring.replace(/[^0-9\,\.\n\r]*/gi, '');
+		lines = datastring.split(/[\n\r]/g);
+		console.log(lines);
+		calculateStatistics();
+		makeGraph();
+	});
+	
+	function makeGraph() {
+		var margin = {top: 20, right: 20, bottom: 30, left: 40},
+			width = 960 - margin.left - margin.right,
+			height = 500 - margin.top - margin.bottom;
+
+		var xScale = d3.scale.ordinal()
+			.rangeRoundBands([0, width], .1);
+
+		var yScale = d3.scale.linear()
+			.range([height, 0]);
+
+		var xAxis = d3.svg.axis()
+			.scale(xScale)
+			.orient("bottom");
+
+		var yAxis = d3.svg.axis()
+			.scale(yScale)
+			.orient("left")
+			.ticks(10);
+
+		var svg = d3.select("#results").append("svg")
+			.attr("width", width + margin.left + margin.right)
+			.attr("height", height + margin.top + margin.bottom)
+		  .append("g")
+			.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+		
+		  xScale.domain(data.map(function(d) { return d.sample; }));
+		  yScale.domain([0, d3.max([d3.max(points, function(d) {return d.y}), d3.max(data, function(d) { return d.mean+d.ci; })])]);
+
+		  svg.append("g")
+			  .attr("class", "x axis")
+			  .attr("transform", "translate(0," + height + ")")
+			  .call(xAxis);
+
+		  svg.append("g")
+			  .attr("class", "y axis")
+			  .call(yAxis)
+			.append("text")
+			  .attr("transform", "rotate(-90)")
+			  .attr("y", 6)
+			  .attr("dy", ".71em")
+			  .style("text-anchor", "end")
+			  .text("");
+
+		  svg.selectAll(".bar")
+			  .data(data)
+			.enter().append("rect")
+			  .attr("class", "bar")
+			  .attr("x", function(d) { return xScale(d.sample); })
+			  .attr("width", xScale.rangeBand())
+			  .attr("y", function(d) { return yScale(d.mean); })
+			  .attr("height", function(d) { return height - yScale(d.mean); });
+		
+		var line = d3.svg.line()
+			.x(function(d) {return d.x;})
+			.y(function(d) {return yScale(d.y);});
+		
+		
+		//plot the error bars
+		barbwidth = 5;
+		data.forEach(function(d, i) {
+			
+			var yrange = d3.range(-2.0*d.ci, 2.0*d.ci, d.ci / 100.0);
+			var calcData = yrange.map(function(b) {
+				return {"x":((compute(b*Math.sqrt(d.n)/d.std, d.n-1)-compute((b-0.01)*Math.sqrt(d.n)/d.std, d.n-1))/0.01), 
+				"y": d.mean+b}
+			});
+			
+			var distMax = d3.max(calcData, function(k) {return k.x});
+			
+			var rightData = calcData.map(function(k) {
+				return {"x":xScale(d.sample)+xScale.rangeBand()/2.0+k.x/distMax*xScale.rangeBand()/2.0, "y":k.y}
+			});
+			var leftData = calcData.map(function(k) {
+				return {"x":xScale(d.sample)+xScale.rangeBand()/2.0-k.x/distMax*xScale.rangeBand()/2.0, "y":k.y}
+			});
+			
+			svg.append("path")
+			   .attr("class", "line")
+			   .attr("d", line(rightData))
+			   //.attr("stroke", "steelblue")
+			   .attr("fill", "red")
+			   .attr("opacity", 0.5);
+			svg.append("path")
+			   .attr("class", "line")
+			   .attr("d", line(leftData))
+			   //.attr("stroke", "#000000")
+			   .attr("fill", "red")
+			   .attr("opacity", 0.5);
+			
+			console.log(d);
+			svg.append("svg:line")
+				.attr("class", "errorbar")
+				.attr("x1", xScale(d.sample)+xScale.rangeBand() / 2.0)
+				.attr("y1", yScale(d.mean - d.ci))
+				.attr("x2", xScale(d.sample)+xScale.rangeBand() / 2.0)
+				.attr("y2", yScale(d.mean + d.ci))
+				
+			svg.append("svg:line")
+				.attr("class", "errorbar")
+				.attr("x1", xScale(d.sample)+xScale.rangeBand() / 2.0 -barbwidth)
+				.attr("y1", yScale(d.mean - d.ci))
+				.attr("x2", xScale(d.sample)+xScale.rangeBand() / 2.0 +barbwidth)
+				.attr("y2", yScale(d.mean - d.ci))
+				
+			svg.append("svg:line")
+				.attr("class", "errorbar")
+				.attr("x1", xScale(d.sample)+xScale.rangeBand() / 2.0 - barbwidth)
+				.attr("y1", yScale(d.mean + d.ci))
+				.attr("x2", xScale(d.sample)+xScale.rangeBand() / 2.0 + barbwidth)
+				.attr("y2", yScale(d.mean + d.ci))
+		});
+		
+		//plot the individual points
+		/*
+		svg.selectAll(".dot")
+				.data(points)
+				.enter().append("circle")
+				  .attr("class", "dot")
+				  .attr("r", 3.5)
+				  .attr("cx", function(k) {return xScale(k.x)+xScale.rangeBand()/2.0 + ((k.count-0.5)*xScale.rangeBand()/3.0)})
+				  .attr("cy", function(k) { return yScale(k.y); })
+				  .style("fill", '#000000');
+		*/
+		
+
+
+	}
+
+	
+	function calculateStatistics() {
+		$('#results').html('');
+		data = [];
+		points=[];
+		for (var i = 0; i < lines.length; i++) {
+			numbers = lines[i].split(',').map(function(item) {return parseFloat(item)});
+			var theText = 'Mean: '+getMean(numbers)+', Std: '+getSTD(numbers)+', 95% CI:'+getConfidence(numbers.length-1, 0.95)*getSTD(numbers) / Math.sqrt(numbers.length);
+			$('#results').html($('#results').html()+theText+'<br>\n');
+			
+			data.push({"sample":i+1, "mean":getMean(numbers), "std":getSTD(numbers), "ci":getConfidence(numbers.length-1, 0.95)*getSTD(numbers) / Math.sqrt(numbers.length), "n":numbers.length});
+			numbers.forEach(function(d,j){points.push({"x":i+1, "y":d, "count":j/numbers.length})});
+		}
+	}
+	
+	function getMean(arr) {
+		var runningTotal = 0;
+		for (var i=0; i<arr.length; i++) {
+			runningTotal += arr[i];
+		}
+		return runningTotal / arr.length;
+	}
+	
+	function getSTD(arr) {
+		var runningTotal = 0;
+		var mean = getMean(arr);
+		
+		for (var i=0; i<arr.length; i++) {
+			runningTotal += (mean - arr[i])*(mean - arr[i]);
+		}
+		return Math.sqrt(runningTotal / (arr.length-1));
+	}
+	
+	function getConfidence(df, prob) {
+		var yintercept = 1.0- ((1-prob) / 2.0);
+		var error = 1.0;
+		var xval = 0;
+		var slope = 0.0;
+		var dx = 0.01
+		
+		while (Math.abs(error) > 0.00001) {
+			error = compute(xval, df) - yintercept;
+			dy = compute(xval+dx, df) - yintercept;
+			slope = (dy-error) / dx;
+			xval = xval - (error / slope);
+		}
+		return xval;
+	}
+	
+	//from www.math.ucla.edu/~tom/distributions/tDist.html
+	function LogGamma(Z) {
+		with (Math) {
+			var S=1+76.18009173/Z-86.50532033/(Z+1)+24.01409822/(Z+2)-1.231739516/(Z+3)+.00120858003/(Z+4)-.00000536382/(Z+5);
+			var LG= (Z-.5)*log(Z+4.5)-(Z+4.5)+log(S*2.50662827465);
+		}
+		return LG
+	}
+
+	//from www.math.ucla.edu/~tom/distributions/tDist.html
+	function Betinc(X,A,B) {
+		var A0=0;
+		var B0=1;
+		var A1=1;
+		var B1=1;
+		var M9=0;
+		var A2=0;
+		var C9;
+		while (Math.abs((A1-A2)/A1)>.00001) {
+			A2=A1;
+			C9=-(A+M9)*(A+B+M9)*X/(A+2*M9)/(A+2*M9+1);
+			A0=A1+C9*A0;
+			B0=B1+C9*B0;
+			M9=M9+1;
+			C9=M9*(B-M9)*X/(A+2*M9-1)/(A+2*M9);
+			A1=A0+C9*A1;
+			B1=B0+C9*B1;
+			A0=A0/B1;
+			B0=B0/B1;
+			A1=A1/B1;
+			B1=1;
+		}
+		return A1/A
+	}
+
+	//from www.math.ucla.edu/~tom/distributions/tDist.html
+	function compute(X, df) {
+		with (Math) {
+			if (df<=0) {
+				alert("Degrees of freedom must be positive")
+			} else {
+				A=df/2;
+				S=A+.5;
+				Z=df/(df+X*X);
+				BT=exp(LogGamma(S)-LogGamma(.5)-LogGamma(A)+A*log(Z)+.5*log(1-Z));
+				if (Z<(A+1)/(S+2)) {
+					betacdf=BT*Betinc(Z,A,.5)
+				} else {
+					betacdf=1-BT*Betinc(1-Z,.5,A)
+				}
+				if (X<0) {
+					tcdf=betacdf/2
+				} else {
+					tcdf=1-betacdf/2
+				}
+			}
+			tcdf=round(tcdf*100000)/100000;
+		}
+		return tcdf;
+	}
+	
+  });
+  
+  </script>
+  
+  </head>
+
+  <body>
+
+    <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="#">Chartograph</a>
+        </div>
+        <div id="navbar" class="collapse navbar-collapse">
+          <ul class="nav navbar-nav">
+            <li><a href="../index.html">Home</a></li>
+            <li><a href="../ms/index.html">MS</a></li>
+            <li><a href="../chroma/index.html">Affinity Chromatography</a></li>
+			<li class="active"><a href="#">Confidence Intervals</a></li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </nav>
+
+    <div class="container">
+		<div class="starter-text">
+			<h2>
+				Calculate confidence intervals and compare samples
+			</h2>
+		</div>
+		Input your data here, each measurement separated by commas, and sets separated by lines.
+		<br>
+		<textarea rows="10" cols="100" id="data-input"></textarea>
+		<input type="button" id="calculate" value="calculate"/>
+		
+		<div id="results">
+		The results will go here
+		</div>
+
+    </div><!-- /.container -->
+
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    
+    <script src="../../dist/js/bootstrap.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.0/js/bootstrap.min.js"></script>
+  </body>
+</html>
