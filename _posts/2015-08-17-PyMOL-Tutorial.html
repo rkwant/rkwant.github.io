@@ -68,26 +68,41 @@ Coloring by element is a great way to highlight certain sections of the protein 
 We can accomplish this same sequence of manipulations by executing the following commands:
 </p>
     
-<code>
+<p><code>
 PyMOL> hide everything<br>
 PyMOL> show cartoon<br>
 PyMOL> show sticks<br>
 PyMOL> util.cbab<br>
-</code>
+</code></p>
 
-The <code>util.cbab</code> command is a function whose name stands for color by atom blue.
+The <code>util.cbab</code> command is a function whose name stands for "color by atom blue."
 To access other colors, you can change the last letter of the function (e.g. <code>util.cbag</code> for green,  <code>util.cbac</code> for cyan,  <code>util.cbam</code> for magenta, etc.).  See <a href="http://www.pymolwiki.org/index.php/Advanced_Coloring#Coloring_by_atom_type">this wiki post</a> for more information. 
 To show off a certain part of the protein, we can click and drag along the sequence to select certain residues.  
+For example, in the sequence viewer, click and drag from residue 1 to residue 6 to show the N-terminus.  
+Alternatively, type the following into the terminal:</p>
+
+<p><code>sele resi 1-6</code></p>
+
+<p>
 This selection is then saved as <code>sele</code> in the objects panel, and we can individually change the attributes of this selection through its menus.  
 For example, ((sele) &rarr; C &rarr; by element &rarr; yellow carbon) will highlight the selected amino acids.  Alternatively, we can run the following command in the command line:
 
-<code>
+<p><code>
 PyMOL> util.cbay sele
-</code>
+</code></p>
+
+<p>You should not have something that looks like the following:</p>
+
+<p><img src="{{site.url}}assets/pymol_figures/cbab.png"></p>
 
 <p>You can save a selection through (sele &rarr; A &rarr; rename selection).  
 This selection will then be saved for the rest of the session.  </p>
 
+<p>In case you're curious, we can also save the commands that we typed into the command line.  
+To do so, copy and paste the commands into a text file, and save it with the file extension <code>.pml</code>. 
+As an example, we've save the following commands into a text file that you can download <a href="{{site.url}}assets/pymol_figures/intro.pml">here</a>.
+To run the commands, go to File &rarr; Run . . . , and then select the file that you just created in the dialog that opens.  
+</p>
 
 <h3>Selection logic</h3>
 
