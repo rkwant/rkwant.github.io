@@ -1,67 +1,30 @@
----
----
+
 <!DOCTYPE html>
 <html>
-<head>
-<title>Chartograph</title>
-<link rel="stylesheet" type="text/css" href="style.css">
-<link href='http://fonts.googleapis.com/css?family=Rokkitt' rel='stylesheet' type='text/css'>
-<script type="text/javascript" src="title/d3.js"></script>
-<script type="text/javascript" src="title/d3.geom.js"></script>
-<script type="text/javascript" src="title/d3.layout.js"></script>
-<script>
-  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  <head>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
+    <script type="text/javascript" src="d3.js"></script>
+    <script type="text/javascript" src="d3.geom.js"></script>
+    <script type="text/javascript" src="d3.layout.js"></script>
+    <link type="text/css" rel="stylesheet" href="style.css"/>
+    <style type="text/css">
 
-  ga('create', 'UA-52357311-1', 'auto');
-  ga('send', 'pageview');
+circle {
+  stroke: #000;
+  stroke-opacity: .5;
+}
 
-</script>
-
-<!-- Latest compiled and minified CSS -->
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.0/css/bootstrap.min.css">
-
-<!-- Optional theme -->
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.0/css/bootstrap-theme.min.css">
-
-
-
-</head>
-<body>
-
-    <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
-      <div class="container">
-        <div class="navbar-header">
-          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
-            <span class="sr-only">Toggle navigation</span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-          </button>
-          <a class="navbar-brand" href="#">Chartograph</a>
-        </div>
-        <div id="navbar" class="collapse navbar-collapse">
-          <ul class="nav navbar-nav">
-            <li class="active"><a href="#">Home</a></li>
-            <li><a href="ms/index.html">MS</a></li>
-              <li><a href="hplc/index.html">HPLC (beta)</a></li>
-            <li><a href="chroma/index.html">Affinity Chromatography</a></li>
-          </ul>
-        </div><!--/.nav-collapse -->
-      </div>
-    </nav>
-
-    <!-- Main jumbotron for a primary marketing message or call to action -->
-    <div class="jumbotron">
-      <div class="container" id="mumbojumbo">
-        
+    </style>
+  </head>
+  <body>
+    <div id="body">
+      <div id="footer">
+        Collision Detection
+        <div class="hint">move the mouse to repel nodes</div>
       </div>
     </div>
-	
-	<script type="text/javascript">
-	
+    <script type="text/javascript">
+
 	
 	//http://bl.ocks.org/bycoffe/5575904
  // from https://github.com/substack/point-in-polygon
@@ -104,7 +67,7 @@ root.fixed = true;
 
 force.start();
 
-var svg = d3.select("#mumbojumbo").append("svg:svg")
+var svg = d3.select("#body").append("svg:svg")
     .attr("width", w)
     .attr("height", h);
 
@@ -254,8 +217,6 @@ force.on("tick", function(e) {
 			var norm = getClosestEdge(o, points);
 			//if (!norm.between) o.color="#00ff00";
 			var force = 1.0 / getDist(norm);
-			o.color = d3.rgb(d3.max([255-getDist(norm)*50, 0]),0,0);
-			//console.log(getDist(norm));
 			o.y += norm.y * force;
 			o.x += norm.x * force;
 		}
@@ -315,68 +276,6 @@ function collide(node) {
   };
 }
 
-	</script>
-
-    <div class="container">
-      <!-- Example row of columns -->
-      <div class="row">
-        <div class="col-md-4">
-          <h2>ChartographMS</h2>
-          <p>Analyze and easily save mass spectrometry data as vector graphics.</p>
-          <p><a class="btn btn-default" href="ms/index.html" role="button">Check it out &raquo;</a></p>
-        </div>
-        <div class="col-md-4">
-          <h2>Affinity Chromatography</h2>
-          <p>Simulate affinity chromatography with multiple species and binding constants.</p>
-          <p><a class="btn btn-default" href="chroma/index.html" role="button">Check it out &raquo;</a></p>
-       </div>
-
-      </div>
-        
-        
-        
-        <div class="row">
-            <div class="col-md-12">
-                <h2>Recent Posts</h2>
-                    
-                <ul>
-                  {% for post in site.posts %}
-                    <li>
-                      <a href="{{ post.url }}">{{ post.title }}</a>
-                    </li>
-                  {% endfor %}
-                </ul>
-            </div>
-            
-        </div>
-        
-        
-        
-        
-        <div class="row">
-            <div class="col-md-12">
-                <h2>About</h2>
-                <p>
-                    Chartograph makes scientific tools accessible via the web.  It's implemented purely with HTML and Javascript so that anyone with a modern browser can use it. 
-                </p>
-            </div>
-            
-        </div>
-
-      <hr>
-
-      <footer>
-        <p>&copy; Chartograph 2015</p>
-      </footer>
-    </div> <!-- /container -->
-
-
-    <!-- Bootstrap core JavaScript
-    ================================================== -->
-    <!-- Placed at the end of the document so the pages load faster -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
-    <!-- Latest compiled and minified JavaScript -->
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.0/js/bootstrap.min.js"></script>
-    
+    </script>
   </body>
 </html>

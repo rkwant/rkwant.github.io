@@ -1,0 +1,173 @@
+/* tell the SVG path to be a thin blue line without any area fill */
+.Center-Container.is-Table { 
+	display: table; 
+	margin:auto;
+	height:100%;
+	
+}
+.is-Table .Table-Cell {
+  display: table-cell;
+  vertical-align: middle;
+}
+.is-Table .Center-Block {
+  width: 100%;
+  margin: 0 auto;
+}
+
+svg {
+	cursor: crosshair;
+}
+
+text {
+  -webkit-user-select:none;
+  -khtml-user-select:none;
+  -moz-user-select:none;
+  -ms-user-select:none;
+  -o-user-select:none;
+  user-select:none;
+}
+
+body, html {
+	height:100%;
+	margin:0;
+}
+
+#leftbar {
+	height:100%;
+	width: 310px;
+	float:left;
+	overflow-y: scroll;
+	position:fixed;
+	font-family: 'Rokkitt', serif;
+}
+
+#leftbar2 {
+	height:100%;
+	width: 310px;
+	float:left;
+}
+
+.title {
+	margin: 10px 0px 0px 10px;
+	font-size:20pt;
+}
+
+.title a {
+	text-decoration: none;
+}
+
+#rdio {
+	margin: 0px 0px 30px 10px;
+	font-size:100%;
+}
+
+#rdio label {
+	width: 93px;
+}
+
+#rdio label span{
+	font-size:12pt;
+	font-family: 'Rokkitt', serif;
+	padding:1px;
+	width: 93px;
+}
+
+#rdio2 {
+	margin: 0px 10px 10px 0px;
+	font-size:100%;
+	
+	
+	display:inline;
+}
+
+#rdio2 label {
+	width: 40px;
+}
+
+#rdio2 label span{
+	font-size:12pt;
+	font-family: 'Rokkitt', serif;
+	padding:1px;
+	width: 40px;
+}
+
+.sliderbox {
+	margin: 20px 10px 5px 10px;
+	padding: 5px;
+	/*border: 1px solid #1B52BF;*/
+	border-radius:5px;
+	box-shadow: 1px 1px 10px #999;
+	
+}
+
+.slidercontent {
+	/*display: none;(*/
+	margin: 10px 0px 0px 0px;
+}
+
+.sliderbox p {
+	cursor:pointer;
+	margin:0px;
+	font-size:larger;
+}
+
+label {
+	display:block;
+	width:80px;
+	margin:0px;
+	float:left;
+}
+
+.first {
+	display: block;
+}
+
+a {
+	color:black;
+}
+
+.Table-Cell .tooltip {
+		position: absolute; /** depends on how it handles the e.pageX and e.pageY **/
+        /*width: 80px;
+        height: 30px;*/
+        background: #FFF;
+        z-index: 10;
+        display: none; /**let the tooltip be not visable, when startup **/
+}
+
+.selection {
+	stroke: gray;
+	stroke-dasharray: 4px;
+	stroke-opacity : 0.5;
+	fill-opacity: 0.1;
+	fill: #000;
+}
+
+
+.black_overlay{
+	display: none;
+	position: absolute;
+	top: 0%;
+	left: 0%;
+	width: 100%;
+	height: 100%;
+	background-color: black;
+	z-index:1001;
+	-moz-opacity: 0.8;
+	opacity:.80;
+	filter: alpha(opacity=80);
+}
+
+.white_content {
+	display: none;
+	position: absolute;
+	top: 25%;
+	left: 25%;
+	width: 50%;
+	height: 50%;
+	padding: 16px;
+	border: 1px solid black;
+	background-color: white;
+	z-index:1002;
+	overflow: auto;
+}

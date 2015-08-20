@@ -1,0 +1,126 @@
+<!DOCTYPE HTML>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>Affinity Chromatography Simulation</title>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+
+<script type="text/javascript" src="http://www.numericjs.com/lib/numeric-1.2.3.min.js"></script>
+<script src="http://code.shutterstock.com/rickshaw/vendor/d3.v3.js"></script>
+
+<!-- Latest compiled and minified CSS -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.0/css/bootstrap.min.css">
+
+<!-- Optional theme -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.0/css/bootstrap-theme.min.css">
+
+
+
+<script src="http://code.shutterstock.com/rickshaw/rickshaw.js"></script>
+<script src="chrom.js"></script>
+<link type="text/css" rel="stylesheet" href="http://code.shutterstock.com/rickshaw/src/css/graph.css">
+<link type="text/css" rel="stylesheet" href="http://code.shutterstock.com/rickshaw/examples/css/lines.css">
+<style>
+#chartContainer {
+	width:100%;
+	height:300px;
+
+}
+#gradContainer {
+	width:100%;
+	height:100px;
+}
+#y_axis {
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	width: 40px;
+}
+#xaxis {
+	width:100%;
+}
+</style>
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-52357311-1', 'auto');
+  ga('send', 'pageview');
+
+</script>
+</head>
+
+<body>
+
+    <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="../">Chartograph</a>
+        </div>
+        <div id="navbar" class="collapse navbar-collapse">
+          <ul class="nav navbar-nav">
+            <li><a href="../">Home</a></li>
+            <li><a href="../ms/index.html">MS</a></li>
+            <li class="active"><a href="chroma/index.html">Affinity Chromatography</a></li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </nav>
+
+
+    <div class="jumbotron">
+
+	
+	
+<div id="tst"></div>
+<div id="container">
+	<div id="chartContainer"></div>
+    <div id="xaxis"></div>
+</div>
+<div id="gradContainer"></div>
+<form>
+    Total elution volume (ml):
+    <input type="text" id="elution_volume" value="30" size="4"></input>
+    Column volume (ml):
+    <input type="text" id="volume" value="4" size="4"></input>
+    Plates:
+    <input type="text" id="plates" value="50" size="4"></input>
+    Resin Conc (M):
+    <input type="text" id="resin" value="0.001" size="4"></input>
+    Timestep (min): 
+    <input type="text" id="timestep" value="0.1" size="4"></input>
+    <br>
+    <input type="button" value="Add species" id="addbutton"></input>
+    <input type="button" value="Add gradient segment" id="addgradient"></input>
+    <input type="button" value="Update" id="plot"></input>
+    <table id="species">
+        <tr>
+            <td>Multiplicity</td>
+            <td>log(Ka)</td>
+            <td>log(Ks)</td>
+            <td>Conc</td>
+            <td>&nbsp;</td>
+        </tr>
+    </table>
+    <table id="gradient">
+        <tr>
+            <td>Start (ml)</td>
+            <td>Duration (ml)</td>
+            <td>Final Conc (M)</td>
+            <td>&nbsp;</td>
+        </tr>
+    </table>
+</form>
+<div id="results"></div>
+<div id="results2"></div>
+</div>
+</body>
+</html>
