@@ -68,12 +68,12 @@ Coloring by element is a great way to highlight certain sections of the protein 
 We can accomplish this same sequence of manipulations by executing the following commands:
 </p>
     
-<code>
-PyMOL> hide everything<br>
-PyMOL> show cartoon<br>
-PyMOL> show sticks<br>
-PyMOL> util.cbab<br>
-</code>
+<% highlight python %>
+PyMOL> hide everything
+PyMOL> show cartoon
+PyMOL> show sticks
+PyMOL> util.cbab
+<% endhighlight %>
 
 The <code>util.cbab</code> command is a function whose name stands for color by atom blue.
 To access other colors, you can change the last letter of the function (e.g. <code>util.cbag</code> for green,  <code>util.cbac</code> for cyan,  <code>util.cbam</code> for magenta, etc.).  See <a href="http://www.pymolwiki.org/index.php/Advanced_Coloring#Coloring_by_atom_type">this wiki post</a> for more information. 
