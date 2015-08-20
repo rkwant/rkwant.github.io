@@ -16,16 +16,15 @@ Since there are many structures available, pay careful attention to which struct
 It's usually best to select a high resolution structure with no mutations.
 </p>
 
-<p>To download a file, click the download files link in the top left, and then select the text option.  Alternatively, you can open Pymol and type 
+<p>To download a file, click the "download files" link in the top right of a structure page, and then select the text option.  Alternatively, you can open Pymol and type 
 <code>fetch</code> followed by the PDBID to download the file and open it automatically.
 </p>
-
 
 
 <h3>Sessions, undo, and saving</h3>
 
 <p>
-In general, you should not expect to be able to undo your actions in PyMOL.  In some cases it is possible to undo actions, but the implementation is spotty and the results are inconsistent.  
+You should not expect to be able to undo your actions in PyMOL.  In some cases it is possible to undo actions, but the implementation is spotty and the results are inconsistent.  
 Instead, it's best to save the session, which saves both the structures that are open, the current selections, and all of the formatting.  
 To save a session, go to File &rarr; Save session as . . .   
 </p>
@@ -33,13 +32,13 @@ To save a session, go to File &rarr; Save session as . . .
 <h3>Pymol basics</h3>
 
 <p>
-Let's start by loading the structure of ubiquitin with PDBID 1UBQ.
+Let's start by loading the structure of ubiquitin with PDBID 1UBQ.  Type the following into the command prompt that starts with <code>PyMOL></code> at the bottom of the screen and press enter.
 </p>
 
-<p><code>PyMOL> fetch 1ubq</code></p>
+<p><code>fetch 1ubq</code></p>
 
 <p>
-This command retrieves the \texttt{.pdb} file from the PDB server and opens it. 
+This command retrieves the .pdb file from the PDB server and opens it. 
 If you look in the object pane on the right side of the window, you'll see 1UBQ listed.  
 Each object loaded into Pymol has has five menus associated with it.  
 They're shown as A, S, H, L, and C and stand for Actions, Show, Hide, Label and Color.  
@@ -50,13 +49,16 @@ These buttons provide access to many of the common actions that you'll want to p
 Let's start by removing the water molecules from the structure
 </p>
 
-<code>PyMOL> remove resn hoh</code>
+<p><code>remove resn hoh</code></p>
 
 
 <p>
-This command removes every residue in the structure with the name HOH, a residue name specially reserved for waters.  
-You can also remove waters by showing the sequence (Display &rarr; Sequence), selecting the waters (shown as O) with your mouse, clicking the A next to sele in the object pane, and then clicking remove atoms.
+This command removes every residue in the structure with the name HOH, a residue name reserved for waters.  
+You can also remove waters by showing the sequence (Display &rarr; Sequence), selecting the waters (shown as O) with your mouse, clicking the A next to <code>sele</code> in the object pane, and then clicking remove atoms.  
+The image below shows this process.
 </p>
+
+<p><img src="{{site.url}}assets/pymol_figures/remove_waters.png"></p>
 
 <p>
 Let's start by Hiding everything (1UBQ &rarr; H &rarr; everything).
