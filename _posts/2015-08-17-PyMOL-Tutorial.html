@@ -8,13 +8,12 @@ title: PyMOL Tutorial
 
 <h3>Getting Files</h3>
 
-<p>The Protein Data Bank (PDB, found at  <a href="http://rcsb.org">rcsb.org</a> is a central source for most protein structures.  
-In fact, most publications require the upload of structures to the PDB as a condition of publication. 
-It is easiest to find structures on the PDB if you know their 4-character PDBID, but it is possible to search a large number of fields to find a desired protein structure.  
-These fields include protein name, organism, enzyme classification, structural domains, and resolution.  
-The PDB also contains a information about the sequence level details of the protein, and it can be a useful resource.  
+<p>The Protein Data Bank (PDB, found at  <a href="http://rcsb.org">rcsb.org</a>) is a central source for most protein structures.  
+In fact, most publications require upload of structures to the PDB as a condition of publication. 
+It is easiest to find structures on the PDB if you know their 4-character PDBID, but it's also possible to search a large number of fields to find a desired protein structure.  
+These fields include protein name, organism, enzyme classification, structural domains, resolution, and sequence level details.  
 Since there are many structures available, pay careful attention to which structure you choose.
-It's best to select a high resolution structure with no mutations.
+It's usually best to select a high resolution structure with no mutations.
 </p>
 
 <p>To download a file, click the download files link in the top left, and then select the text option.  Alternatively, you can open Pymol and type 
@@ -37,8 +36,7 @@ To save a session, go to File &rarr; Save session as . . .
 Let's start by loading the structure of ubiquitin with PDBID 1UBQ.
 </p>
 
-<code>PyMOL> fetch 1ubq</code>
-
+<p><code>PyMOL> fetch 1ubq</code></p>
 
 <p>
 This command retrieves the \texttt{.pdb} file from the PDB server and opens it. 
@@ -56,7 +54,7 @@ Let's start by removing the water molecules from the structure
 
 
 <p>
-    This command removes every residue in the structure with the name HOH, a residue name specially reserved for waters.  
+This command removes every residue in the structure with the name HOH, a residue name specially reserved for waters.  
 You can also remove waters by showing the sequence (Display &rarr; Sequence), selecting the waters (shown as O) with your mouse, clicking the A next to sele in the object pane, and then clicking remove atoms.
 </p>
 
