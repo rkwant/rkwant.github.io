@@ -4,7 +4,10 @@
 		<title>ChartographMS</title>
 		<link rel="stylesheet" type="text/css" href="style.css">
 		<link href='http://fonts.googleapis.com/css?family=Rokkitt' rel='stylesheet' type='text/css'>
+		<script src="svg2pdf.js"></script>
 		<script src="d3.min.js"></script>
+		<script src="jspdf.debug.js"></script>
+		
 		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
 		<script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
 		<link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.11.0/themes/smoothness/jquery-ui.css" />
@@ -24,6 +27,16 @@
 			} else {
 			alert('The File APIs are not fully supported in this browser.');
 			}
+		</script>
+		<script src="https://cdn.jsdelivr.net/npm/d3-require@1"></script>
+		<script>
+		  const downloadSVG = async () => {
+		    crowbar = await d3.require('svg-crowbar@0.3.1/dist/main.js');
+			const target=document.getElementsByTagName('svg')[0];
+			  target.id=d3.select('#fname').property('value');
+		    crowbar.default(target);
+			
+		  }
 		</script>
 		<script>
 			$(document).ready(function() {
@@ -67,8 +80,8 @@
 					for (var i=0, f; f=files[i]; i++) {
 						filenames.push(f.name)
 						filedata.push(null);
-						
-						var reader = new FileReader();
+						var type= f.instance;
+						var reader = new window.FileReader();
 						fileordering.push(i);
 												
 						reader.onload = (function(theFile) {
@@ -979,6 +992,23 @@
 					// Extract the data as SVG text string
 					var svg_xml = (new XMLSerializer).serializeToString(svg);
 					
+					//NEw code for svgPDF
+					// create a new jsPDF instance
+					const pdf = new jsPDF('l', 'pt', [svg.width.baseVal.value, svg.height.baseVal.value]);
+
+					// render the svg element
+					svg2pdf(svg, pdf,{
+					xOffset: 0,
+					yOffset: 0,
+					scale: 1
+					});
+
+					// get the data URI
+					const uri = pdf.output('datauristring');
+
+					// or simply save the created pdf
+					pdf.save(getv('#fname'));
+					
 					// Submit the <FORM> to the server.
 					// The result will be an attachment file to download.
 					var form = document.getElementById("svgform");
@@ -988,20 +1018,12 @@
 					form['filename'].value = getv('#fname');
 					
 					form['data'].value = svg_xml;
-					form.submit();
+					//form.submit();
 				});
 				
 				$('#svgdownload').click(function (e) {
 					setCookies();
-					var e = document.createElement('script');
-					if (window.location.protocol === 'https:') { 
-						e.setAttribute('src', 'https://raw.github.com/NYTimes/svg-crowbar/gh-pages/svg-crowbar.js'); 
-					} 
-					else { 
-						e.setAttribute('src', 'http://nytimes.github.com/svg-crowbar/svg-crowbar.js'); 
-					}
-					e.setAttribute('class', 'svg-crowbar'); 
-					document.body.appendChild(e); 
+					downloadSVG();
 				});
 				
 				$( "#rdio" ).buttonset();
